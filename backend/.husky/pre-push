@@ -1,0 +1,22 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+cd backend
+
+echo "🧪 Running full test suite before push..."
+npm test
+
+if [ $? -ne 0 ]; then
+  echo "❌ Tests failed. Push aborted."
+  exit 1
+fi
+
+echo "📊 Running coverage check..."
+npm run test:coverage
+
+if [ $? -ne 0 ]; then
+  echo "❌ Coverage check failed. Push aborted."
+  exit 1
+fi
+
+echo "✅ All tests and coverage checks passed!"

@@ -1,0 +1,127 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "./generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int       @id @default(autoincrement())
+  username  String    @unique
+  password  String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime? @updatedAt
+  name      String?   @db.VarChar(255)
+  image     String?   @db.Text
+  tasks     Task[]
+  orders    Order[]
+  role_id   Int       @default(3) // Default to 'user' role
+  role      Role      @relation(fields: [role_id], references: [id], onDelete: Cascade)
+
+  @@index([name]) // Index for searching users by name
+  @@index([role_id]) // Index for filtering by role
+  @@map("users") // Maps to 'users' table in the database
+}
+
+model Role {
+  id        Int       @id @default(autoincrement())
+  name      String    @unique
+  createdAt DateTime  @default(now())
+  updatedAt DateTime? @updatedAt
+  users     User[]
+
+  @@map("roles") // Maps to 'roles' table in the database
+}
+
+model Task {
+  id          Int       @id @default(autoincrement())
+  title       String
+  description String
+  status      Boolean   @default(false)
+  created_by  String
+  deadline    DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime? @updatedAt
+  user_id     Int
+  user        User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id]) // Index for fetching tasks by user
+  @@index([status]) // Index for filtering by status
+  @@index([deadline]) // Index for deadline queries
+  @@map("tasks") // Maps to 'tasks' table in the database
+}
+
+model Product {
+  id          Int         @id @default(autoincrement())
+  code        String      @unique @db.VarChar(50) // Unique code like PRD0001
+  name        String      @db.VarChar(255)
+  description String?     @db.Text
+  price       Decimal     @db.Decimal(10, 2)
+  stock       Int         @default(0)
+  image       String?     @db.Text
+  category    String?     @db.VarChar(100)
+  status      Int         @default(1) // 0: deleted, 1: active, 2: inactive
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime?   @updatedAt
+  deletedAt   DateTime? // Soft delete
+  orderItems  OrderItem[]
+
+  @@index([name]) // Index for searching products by name
+  @@index([category]) // Index for filtering by category
+  @@index([status]) // Index for filtering by status
+  @@index([price]) // Index for sorting by price
+  @@index([createdAt]) // Index for date range queries
+  @@index([status, deletedAt]) // Composite index for active products query
+  @@map("products")
+}
+
+model Order {
+  id          Int         @id @default(autoincrement())
+  code        String      @unique @db.VarChar(50) // Unique code like ORD0001
+  user_id     Int
+  user        User        @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  totalAmount Decimal     @db.Decimal(10, 2)
+  status      OrderStatus @default(PENDING)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime?   @updatedAt
+  cancelledAt DateTime? // When order was cancelled
+  orderItems  OrderItem[]
+
+  @@index([user_id]) // Index for filtering orders by user
+  @@index([status]) // Index for filtering by status
+  @@index([createdAt]) // Index for date range queries and sorting
+  @@index([user_id, status]) // Composite index for user's orders by status
+  @@map("orders")
+}
+
+model OrderItem {
+  id         Int      @id @default(autoincrement())
+  code       String   @unique @db.VarChar(50) // Unique code like ITM0001
+  order_id   Int
+  order      Order    @relation(fields: [order_id], references: [id], onDelete: Cascade)
+  product_id Int
+  product    Product  @relation(fields: [product_id], references: [id], onDelete: Restrict)
+  quantity   Int
+  price      Decimal  @db.Decimal(10, 2) // Price at time of order
+  createdAt  DateTime @default(now())
+
+  @@index([order_id]) // Index for fetching items by order
+  @@index([product_id]) // Index for product lookups
+  @@map("order_items")
+}
+
+enum OrderStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  CANCELLED
+}

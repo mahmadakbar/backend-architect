@@ -1,0 +1,86 @@
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: task-management-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER:-testtodo}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-admin123}
+      POSTGRES_DB: ${DB_NAME:-todo_postgres}
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - task-management-network
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${DB_USER:-testtodo} -d ${DB_NAME:-todo_postgres}",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Application Server
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: task-management-app
+    restart: unless-stopped
+    ports:
+      - "${PORT:-3131}:3131"
+    environment:
+      NODE_ENV: ${NODE_ENV:-production}
+      PORT: ${PORT:-3131}
+      DATABASE_URL: postgresql://${DB_USER:-testtodo}:${DB_PASSWORD:-admin123}@postgres:5432/${DB_NAME:-todo_postgres}?schema=public
+      BASE_URL: ${BASE_URL:-http://localhost:3131}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      JWT_ACCESS_EXPIRES: ${JWT_ACCESS_EXPIRES:-60m}
+      JWT_REFRESH_EXPIRES: ${JWT_REFRESH_EXPIRES:-7d}
+      KEY_SECRET: ${KEY_SECRET}
+      BRANCH: ${BRANCH:-production}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - task-management-network
+    command: >
+      sh -c "
+        echo 'Waiting for database...' &&
+        bunx prisma migrate deploy --schema=./src/prisma/schema.prisma &&
+        echo 'Starting application...' &&
+        bun run src/app.ts
+      "
+
+  # Optional: Prisma Studio (for database management)
+  prisma-studio:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: task-management-prisma-studio
+    restart: unless-stopped
+    ports:
+      - "5555:5555"
+    environment:
+      DATABASE_URL: postgresql://${DB_USER:-testtodo}:${DB_PASSWORD:-admin123}@postgres:5432/${DB_NAME:-todo_postgres}?schema=public
+    depends_on:
+      - postgres
+    networks:
+      - task-management-network
+    command: bunx prisma studio --schema=./src/prisma/schema.prisma --port 5555 --browser none
+    profiles:
+      - tools
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  task-management-network:
+    driver: bridge
