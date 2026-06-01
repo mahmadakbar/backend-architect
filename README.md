@@ -13,6 +13,9 @@ A full-stack E-Commerce application built with Next.js, Express.js, and PostgreS
 - 📱 Responsive design
 - 📊 **OpenTelemetry integration** - Distributed tracing, metrics, and log correlation
 - 🔍 **Jaeger UI** - Visual trace exploration and debugging
+- ⏱️ **Rate Limiting with Queue System** - UX-friendly rate limiting that returns 202 Accepted with queue tokens
+- 🔌 **Socket.IO Real-time Updates** - Get instant notifications when queued requests complete
+- 📦 **Redis-based Queue** - Reliable request queuing and processing
 
 ## 🛠️ Tech Stack
 
@@ -36,6 +39,8 @@ A full-stack E-Commerce application built with Next.js, Express.js, and PostgreS
 - **Bun** - Runtime & package manager
 - **Pino** - Structured logging
 - **OpenTelemetry** - Observability & distributed tracing
+- **Redis** - Queue management & rate limiting
+- **Socket.IO** - Real-time bidirectional communication
 
 ## 📦 Project Structure
 
@@ -80,6 +85,7 @@ docker-compose up -d
 This starts:
 
 - PostgreSQL Database on port 5432
+- Redis Cache & Queue on port 6379
 - Backend API on port 3131
 - Frontend Application on port 3000
 
@@ -106,7 +112,9 @@ For detailed Docker documentation, see [DOCKER.md](./DOCKER.md)
 
 ## 📊 OpenTelemetry & Observability (Optional)
 
-📚 **Documentation**: See [backend/OPENTELEMETRY.md](backend/OPENTELEMETRY.md) for detailed usage and examples.
+📚 **Documentation**: 
+
+- OpenTelemetry: See [backend/OPENTELEMETRY.md](backend/OPENTELEMETRY.md)- Rate Limiting: See [RATE_LIMITING_GUIDE.md](RATE_LIMITING_GUIDE.md)
 
 ### Using Jaeger
 
@@ -229,6 +237,30 @@ Once the application is running, follow these steps to test the functionality:
 
 Interactive API documentation: http://localhost:3131/api-docs
 
+### 🔐 Required Security Headers
+
+**All API requests must include these headers:**
+
+| Header | Value |
+|--------|-------|
+| `apikey` | Your API key from backend `.env` |
+| `x-content-type-options` | `nosniff` |
+| `x-xss-protection` | `1; mode=block` |
+| `strict-transport-security` | `max-age=31536000; includeSubDomains; preload` |
+| `x-frame-options` | `SAMEORIGIN` |
+
+**Example:**
+```bash
+curl "http://localhost:3131/api/v1/products" \
+  -H "apikey: your-api-key" \
+  -H "x-content-type-options: nosniff" \
+  -H "x-xss-protection: 1; mode=block" \
+  -H "strict-transport-security: max-age=31536000; includeSubDomains; preload" \
+  -H "x-frame-options: SAMEORIGIN"
+```
+
+The frontend automatically includes these headers. See [backend/README.md](backend/README.md#-required-security-headers) for detailed documentation.
+
 ### Main Endpoints
 
 #### Authentication
@@ -250,11 +282,12 @@ Interactive API documentation: http://localhost:3131/api-docs
 
 | Variable | Description | How to Generate |
 |----------|-------------|----------------|
+| APIKEY | API authentication key | `openssl rand -base64 32` |
 | JWT_ACCESS_SECRET | Access token secret | `openssl rand -base64 32` |
 | JWT_REFRESH_SECRET | Refresh token secret | `openssl rand -base64 32` |
 | KEY_SECRET | Encryption key | `openssl rand -base64 24` |
 
-### Optional Variables (OpenTelemetry)
+### Optional Variables
 
 | Variable | Description | Default |
 |----------|-------------|---------|
@@ -262,6 +295,9 @@ Interactive API documentation: http://localhost:3131/api-docs
 | TELEMETRY_SERVICE_NAME | Service name for tracing | `ecommerce-backend` |
 | TELEMETRY_SERVICE_VERSION | Service version | `1.0.0` |
 | TELEMETRY_OTLP_ENDPOINT | OpenTelemetry collector endpoint | `http://localhost:4318` |
+| REDIS_URL | Redis connection URL | `redis://localhost:6379` |
+| RATE_LIMIT_MAX_REQUESTS | Max requests per window | `10` |
+| RATE_LIMIT_WINDOW_MS | Rate limit time window (ms) | `60000` (1 min) |
 
 See `.env.example` files for all available options.
 
@@ -330,6 +366,65 @@ docker-compose restart        # Restart services
 docker-compose down -v        # Remove all containers and data
 docker-compose up -d --build  # Start fresh
 ```
+
+## 🧪 Testing
+
+### Functional Tests
+
+The backend includes functional test scripts in `backend/src/tests/functionals/`:
+
+#### Rate Limiting Tests
+
+Test the rate limiting and queue system:
+
+```bash
+# Start services
+docker-compose up -d
+
+# Run basic rate limit test (no auth required)
+node backend/src/tests/functionals/test-rate-limit-simple.js
+
+# Run full rate limit test (with authentication)
+node backend/src/tests/functionals/test-rate-limit.js
+```
+
+**What gets tested:**
+- ✅ Rate limit enforcement (10 requests per 60 seconds)
+- ✅ Queue system for rate-limited requests
+- ✅ 202 Accepted responses with queue tokens
+- ✅ Real-time queue status updates
+- ✅ Automatic request processing
+
+**Expected output:**
+```
+🚀 Starting Rate Limit and Queue Tests
+
+📊 Results:
+  ✅ Normal requests (200): 10
+  ⏳ Queued requests (202): 5
+  ❌ Errored requests: 0
+```
+
+#### Swagger Tests
+
+Verify API documentation:
+
+```bash
+node backend/src/tests/functionals/test-swagger.js
+```
+
+### Unit Tests
+
+Run backend unit tests:
+
+```bash
+cd backend
+bun test                    # Run all tests
+bun test:watch             # Watch mode
+bun test:coverage          # With coverage report
+```
+
+📖 For detailed rate limiting documentation, see [RATE_LIMITING_GUIDE.md](RATE_LIMITING_GUIDE.md)
 
 ## 🚢 Deployment
 

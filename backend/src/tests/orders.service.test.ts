@@ -3,6 +3,7 @@ import {
   SGetOrderById,
   SGetOrderHistory,
   SCancelOrder,
+  SUpdateOrderStatus,
 } from "@api/v1/orders/orders.service";
 import { prisma } from "@prisma/prisma.clients";
 
@@ -620,17 +621,50 @@ describe("Orders Service", () => {
       (prisma.order.findMany as jest.Mock).mockResolvedValue([mockOrder]);
 
       // Act
-      await SGetOrderHistory(1, "admin", {
+      const result = await SGetOrderHistory(1, "admin", {
         sortBy: "status",
         sortOrder: "asc",
       });
 
       // Assert
+      expect(result.orders).toEqual([mockOrder]);
       expect(prisma.order.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
           orderBy: { status: "asc" },
         }),
       );
+    });
+
+    it("should use default sort when sortBy is invalid", async () => {
+      // Arrange
+      (prisma.order.count as jest.Mock).mockResolvedValue(1);
+      (prisma.order.findMany as jest.Mock).mockResolvedValue([mockOrder]);
+
+      // Act
+      const result = await SGetOrderHistory(1, "admin", {
+        sortBy: "invalidField" as any,
+        sortOrder: "asc",
+      });
+
+      // Assert
+      expect(result.orders).toEqual([mockOrder]);
+      expect(prisma.order.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          orderBy: { createdAt: "desc" },
+        }),
+      );
+    });
+
+    it("should handle database errors in order history retrieval", async () => {
+      // Arrange
+      (prisma.order.count as jest.Mock).mockRejectedValue(
+        new Error("Database connection error"),
+      );
+
+      // Act & Assert
+      await expect(
+        SGetOrderHistory(1, "admin", { page: 1, limit: 10 }),
+      ).rejects.toThrow("Database connection error");
     });
 
     it("should combine search, filter, and sort", async () => {
@@ -659,6 +693,152 @@ describe("Orders Service", () => {
           orderBy: { totalAmount: "desc" },
         }),
       );
+    });
+  });
+  describe("SUpdateOrderStatus", () => {
+    it("should allow admin to update order status", async () => {
+      // Arrange
+      (prisma.order.findUnique as jest.Mock).mockResolvedValue(mockOrder);
+      (prisma.order.update as jest.Mock).mockResolvedValue({
+        ...mockOrder,
+        status: "PROCESSING",
+        user: {
+          id: 1,
+          username: "testuser",
+          name: "Test User",
+        },
+      });
+
+      // Act
+      const result = await SUpdateOrderStatus(1, "PROCESSING", 2, "admin");
+
+      // Assert
+      expect(result.status).toBe("PROCESSING");
+      expect(prisma.order.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: 1 },
+          data: {
+            status: "PROCESSING",
+          },
+        }),
+      );
+    });
+
+    it("should allow superadmin to update order status", async () => {
+      // Arrange
+      (prisma.order.findUnique as jest.Mock).mockResolvedValue(mockOrder);
+      (prisma.order.update as jest.Mock).mockResolvedValue({
+        ...mockOrder,
+        status: "COMPLETED",
+        user: {
+          id: 1,
+          username: "testuser",
+          name: "Test User",
+        },
+      });
+
+      // Act
+      const result = await SUpdateOrderStatus(1, "COMPLETED", 3, "superadmin");
+
+      // Assert
+      expect(result.status).toBe("COMPLETED");
+      expect(prisma.order.update).toHaveBeenCalled();
+    });
+
+    it("should throw error if regular user tries to update order status", async () => {
+      // Act & Assert
+      await expect(
+        SUpdateOrderStatus(1, "PROCESSING", 1, "user"),
+      ).rejects.toThrow("Only admin or superadmin can update order status");
+    });
+
+    it("should throw error if order not found", async () => {
+      // Arrange
+      (prisma.order.findUnique as jest.Mock).mockResolvedValue(null);
+
+      // Act & Assert
+      await expect(
+        SUpdateOrderStatus(999, "PROCESSING", 2, "admin"),
+      ).rejects.toThrow("Order with ID 999 not found");
+    });
+
+    it("should throw error if status is invalid", async () => {
+      // Arrange
+      (prisma.order.findUnique as jest.Mock).mockResolvedValue(mockOrder);
+
+      // Act & Assert
+      await expect(
+        SUpdateOrderStatus(1, "INVALID_STATUS", 2, "admin"),
+      ).rejects.toThrow("Invalid status: INVALID_STATUS");
+    });
+
+    it("should throw error if order is already completed", async () => {
+      // Arrange
+      (prisma.order.findUnique as jest.Mock).mockResolvedValue({
+        ...mockOrder,
+        status: "COMPLETED",
+      });
+
+      // Act & Assert
+      await expect(
+        SUpdateOrderStatus(1, "CANCELLED", 2, "admin"),
+      ).rejects.toThrow("Cannot update status of completed order");
+    });
+
+    it("should throw error if order is already cancelled", async () => {
+      // Arrange
+      (prisma.order.findUnique as jest.Mock).mockResolvedValue({
+        ...mockOrder,
+        status: "CANCELLED",
+      });
+
+      // Act & Assert
+      await expect(
+        SUpdateOrderStatus(1, "PROCESSING", 2, "admin"),
+      ).rejects.toThrow("Cannot update status of cancelled order");
+    });
+
+    it("should allow updating from PENDING to PROCESSING", async () => {
+      // Arrange
+      (prisma.order.findUnique as jest.Mock).mockResolvedValue(mockOrder);
+      (prisma.order.update as jest.Mock).mockResolvedValue({
+        ...mockOrder,
+        status: "PROCESSING",
+        user: {
+          id: 1,
+          username: "testuser",
+          name: "Test User",
+        },
+      });
+
+      // Act
+      const result = await SUpdateOrderStatus(1, "PROCESSING", 2, "admin");
+
+      // Assert
+      expect(result.status).toBe("PROCESSING");
+    });
+
+    it("should allow updating from PROCESSING to COMPLETED", async () => {
+      // Arrange
+      (prisma.order.findUnique as jest.Mock).mockResolvedValue({
+        ...mockOrder,
+        status: "PROCESSING",
+      });
+      (prisma.order.update as jest.Mock).mockResolvedValue({
+        ...mockOrder,
+        status: "COMPLETED",
+        user: {
+          id: 1,
+          username: "testuser",
+          name: "Test User",
+        },
+      });
+
+      // Act
+      const result = await SUpdateOrderStatus(1, "COMPLETED", 2, "admin");
+
+      // Assert
+      expect(result.status).toBe("COMPLETED");
     });
   });
 });

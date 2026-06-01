@@ -10,6 +10,7 @@ import { VChangeUserRole } from "./users.validation";
 
 const router = Router();
 
+// Note: MApiKey middleware is applied at v1.routes.ts level
 // All routes require authentication
 router.use(MAuthToken);
 

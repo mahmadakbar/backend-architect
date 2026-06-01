@@ -1,3 +1,5 @@
+import { securityHeaderParameters } from "./common.swagger";
+
 export const taskSchemas = {
   CreateTaskRequest: {
     type: "object",
@@ -110,8 +112,10 @@ export const taskPaths = {
     post: {
       tags: ["Tasks"],
       summary: "Create a new task",
-      description: "Create a new task for the authenticated user",
+      description:
+        "Create a new task for the authenticated user. **Requires security headers**",
       security: [{ bearerAuth: [] }],
+      parameters: securityHeaderParameters,
       requestBody: {
         required: true,
         content: {
@@ -160,8 +164,10 @@ export const taskPaths = {
     get: {
       tags: ["Tasks"],
       summary: "Get all tasks",
-      description: "Retrieve all tasks for the authenticated user",
+      description:
+        "Retrieve all tasks for the authenticated user. **Requires security headers**",
       security: [{ bearerAuth: [] }],
+      parameters: securityHeaderParameters,
       responses: {
         "200": {
           description: "Tasks retrieved successfully",
@@ -199,7 +205,8 @@ export const taskPaths = {
     post: {
       tags: ["Tasks"],
       summary: "Update an existing task",
-      description: "Update task details by task ID",
+      description:
+        "Update task details by task ID. **Requires security headers**",
       security: [{ bearerAuth: [] }],
       parameters: [
         {
@@ -210,6 +217,7 @@ export const taskPaths = {
           description: "Task ID",
           example: 1,
         },
+        ...securityHeaderParameters,
       ],
       requestBody: {
         required: true,
@@ -269,7 +277,7 @@ export const taskPaths = {
     delete: {
       tags: ["Tasks"],
       summary: "Delete a task",
-      description: "Delete a task by task ID",
+      description: "Delete a task by task ID. **Requires security headers**",
       security: [{ bearerAuth: [] }],
       parameters: [
         {
@@ -280,6 +288,7 @@ export const taskPaths = {
           description: "Task ID to delete",
           example: 1,
         },
+        ...securityHeaderParameters,
       ],
       responses: {
         "200": {

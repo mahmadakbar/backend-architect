@@ -675,6 +675,66 @@ describe("Products Service", () => {
       );
     });
 
+    it("should sort products by status", async () => {
+      // Arrange
+      (prisma.product.count as jest.Mock).mockResolvedValue(1);
+      (prisma.product.findMany as jest.Mock).mockResolvedValue([mockProduct]);
+
+      // Act
+      const result = await SGetProducts({
+        sortBy: "status",
+        sortOrder: "asc",
+      });
+
+      // Assert
+      expect(result.products).toEqual([mockProduct]);
+      expect(prisma.product.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          orderBy: { status: "asc" },
+        }),
+      );
+    });
+
+    it("should sort products by category", async () => {
+      // Arrange
+      (prisma.product.count as jest.Mock).mockResolvedValue(1);
+      (prisma.product.findMany as jest.Mock).mockResolvedValue([mockProduct]);
+
+      // Act
+      const result = await SGetProducts({
+        sortBy: "category",
+        sortOrder: "desc",
+      });
+
+      // Assert
+      expect(result.products).toEqual([mockProduct]);
+      expect(prisma.product.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          orderBy: { category: "desc" },
+        }),
+      );
+    });
+
+    it("should use default sort when sortBy is invalid", async () => {
+      // Arrange
+      (prisma.product.count as jest.Mock).mockResolvedValue(1);
+      (prisma.product.findMany as jest.Mock).mockResolvedValue([mockProduct]);
+
+      // Act
+      const result = await SGetProducts({
+        sortBy: "invalidField" as any,
+        sortOrder: "asc",
+      });
+
+      // Assert
+      expect(result.products).toEqual([mockProduct]);
+      expect(prisma.product.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          orderBy: { createdAt: "desc" },
+        }),
+      );
+    });
+
     it("should combine search, filter, and sort", async () => {
       // Arrange
       (prisma.product.count as jest.Mock).mockResolvedValue(1);

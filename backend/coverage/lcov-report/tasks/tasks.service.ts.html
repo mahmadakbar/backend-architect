@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">98.38% </span>
+                <span class="strong">98.41% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>61/62</span>
+                <span class='fraction'>62/63</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">98.24% </span>
+                <span class="strong">98.27% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>56/57</span>
+                <span class='fraction'>57/58</span>
             </div>
         
             
@@ -257,7 +257,18 @@
 <a name='L192'></a><a href='#L192'>192</a>
 <a name='L193'></a><a href='#L193'>193</a>
 <a name='L194'></a><a href='#L194'>194</a>
-<a name='L195'></a><a href='#L195'>195</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
+<a name='L195'></a><a href='#L195'>195</a>
+<a name='L196'></a><a href='#L196'>196</a>
+<a name='L197'></a><a href='#L197'>197</a>
+<a name='L198'></a><a href='#L198'>198</a>
+<a name='L199'></a><a href='#L199'>199</a>
+<a name='L200'></a><a href='#L200'>200</a>
+<a name='L201'></a><a href='#L201'>201</a>
+<a name='L202'></a><a href='#L202'>202</a>
+<a name='L203'></a><a href='#L203'>203</a>
+<a name='L204'></a><a href='#L204'>204</a>
+<a name='L205'></a><a href='#L205'>205</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -269,9 +280,6 @@
 <span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -281,6 +289,9 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-yes">1x</span>
@@ -322,6 +333,9 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">5x</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -378,6 +392,9 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -417,6 +434,9 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">5x</span>
 <span class="cline-any cline-yes">1x</span>
@@ -452,6 +472,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { prisma } from "@prisma/prisma.clients";
+import logger from "@configs/logger.configs";
 &nbsp;
 export const SCreateTask = async (
   userId: number,
@@ -461,10 +482,7 @@ export const SCreateTask = async (
   deadline?: Date,
 ): Promise&lt;{ success: boolean; message: string }&gt; =&gt; {
   try {
-    console.log(
-      `Creating task for user ID ${userId} with description:`,
-      description,
-    );
+    logger.info({ userId, description }, `Creating task for user ID ${userId}`);
 &nbsp;
     if (!userId || isNaN(Number(userId))) {
       throw new Error("Invalid user ID");
@@ -474,7 +492,10 @@ export const SCreateTask = async (
       where: { id: Number(userId) },
     });
 &nbsp;
-    console.log(`Checking if user with ID ${userId} exists:`, userExists);
+    logger.info(
+      { userId, userExists },
+      `Checking if user with ID ${userId} exists`,
+    );
 &nbsp;
     if (!userExists) {
       throw new Error(`User with ID ${userId} not found`);
@@ -496,7 +517,7 @@ export const SCreateTask = async (
       message: "Task created successfully",
     };
   } catch (error: any) {
-    console.error("Task creation error:", error);
+    logger.error(error, "Task creation error");
     throw error;
   }
 };
@@ -515,7 +536,10 @@ export const SUpdateTask = async (
       where: { id: Number(userId) },
     });
 &nbsp;
-    console.log(`Checking if user with ID ${userId} exists:`, userExists);
+    logger.info(
+      { userId, userExists },
+      `Checking if user with ID ${userId} exists`,
+    );
 &nbsp;
     <span class="missing-if-branch" title="if path not taken" >I</span>if (!userExists) {
 <span class="cstat-no" title="statement not covered" >      throw new Error(`User with ID ${userId} not found`);</span>
@@ -551,7 +575,7 @@ export const SUpdateTask = async (
       message: "Task updated successfully",
     };
   } catch (error: any) {
-    console.error("Task update error:", error);
+    logger.error(error, "Task update error");
     throw error;
   }
 };
@@ -570,7 +594,10 @@ export const SDeleteTask = async (
       where: { id: Number(taskId) },
     });
 &nbsp;
-    console.log(`Checking if task with ID ${taskId} exists:`, taskExists);
+    logger.info(
+      { taskId, taskExists },
+      `Checking if task with ID ${taskId} exists`,
+    );
 &nbsp;
     if (!taskExists) {
       throw new Error(`Task with ID ${taskId} not found`);
@@ -592,7 +619,7 @@ export const SDeleteTask = async (
       message: "Task deleted successfully",
     };
   } catch (error: any) {
-    console.error("Task deletion error:", error);
+    logger.error(error, "Task deletion error");
     throw error;
   }
 };
@@ -610,7 +637,10 @@ export const SGetTasksByUserId = async (
       where: { id: Number(userId) },
     });
 &nbsp;
-    console.log(`Checking if user with ID ${userId} exists:`, userExists);
+    logger.info(
+      { userId, userExists },
+      `Checking if user with ID ${userId} exists`,
+    );
 &nbsp;
     if (!userExists) {
       throw new Error(`User with ID ${userId} not found`);
@@ -641,7 +671,7 @@ export const SGetTasksByUserId = async (
       deadline: task.deadline?.toISOString() || null,
     }));
   } catch (error: any) {
-    console.error("Task retrieval error:", error);
+    logger.error(error, "Task retrieval error");
     throw error;
   }
 };
@@ -652,7 +682,7 @@ export const SGetTasksByUserId = async (
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-05-31T14:47:04.136Z
+                at 2026-06-01T04:56:58.987Z
             </div>
         <script src="../prettify.js"></script>
         <script>

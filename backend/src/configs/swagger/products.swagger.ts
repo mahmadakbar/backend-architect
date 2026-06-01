@@ -1,3 +1,5 @@
+import { securityHeaderParameters } from "./common.swagger";
+
 export const productSchemas = {
   CreateProductRequest: {
     type: "object",
@@ -176,7 +178,7 @@ export const productPaths = {
       tags: ["Products"],
       summary: "Get all products with pagination and advanced filtering",
       description:
-        "Retrieve all products with search, filter, and sort options",
+        "Retrieve all products with search, filter, and sort options. **Requires security headers**",
       parameters: [
         {
           name: "page",
@@ -235,6 +237,7 @@ export const productPaths = {
           schema: { type: "string", enum: ["asc", "desc"], default: "asc" },
           description: "Sort order",
         },
+        ...securityHeaderParameters,
       ],
       responses: {
         "200": {
@@ -264,8 +267,10 @@ export const productPaths = {
     post: {
       tags: ["Products"],
       summary: "Create a new product",
-      description: "Create a new product (Admin/Superadmin only)",
+      description:
+        "Create a new product (Admin/Superadmin only). **Requires security headers**",
       security: [{ bearerAuth: [] }],
+      parameters: securityHeaderParameters,
       requestBody: {
         required: true,
         content: {
@@ -316,7 +321,8 @@ export const productPaths = {
     get: {
       tags: ["Products"],
       summary: "Get product by ID",
-      description: "Retrieve a single product by its ID",
+      description:
+        "Retrieve a single product by its ID. **Requires security headers**",
       parameters: [
         {
           name: "productId",
@@ -325,6 +331,7 @@ export const productPaths = {
           schema: { type: "integer" },
           description: "Product ID",
         },
+        ...securityHeaderParameters,
       ],
       responses: {
         "200": {
@@ -358,7 +365,8 @@ export const productPaths = {
     put: {
       tags: ["Products"],
       summary: "Update a product",
-      description: "Update product details (Admin/Superadmin only)",
+      description:
+        "Update product details (Admin/Superadmin only). **Requires security headers**",
       security: [{ bearerAuth: [] }],
       parameters: [
         {
@@ -368,6 +376,7 @@ export const productPaths = {
           schema: { type: "integer" },
           description: "Product ID",
         },
+        ...securityHeaderParameters,
       ],
       requestBody: {
         required: true,
@@ -425,7 +434,8 @@ export const productPaths = {
     delete: {
       tags: ["Products"],
       summary: "Delete a product",
-      description: "Soft delete a product (Admin/Superadmin only)",
+      description:
+        "Soft delete a product (Admin/Superadmin only). **Requires security headers**",
       security: [{ bearerAuth: [] }],
       parameters: [
         {
@@ -435,6 +445,7 @@ export const productPaths = {
           schema: { type: "integer" },
           description: "Product ID",
         },
+        ...securityHeaderParameters,
       ],
       responses: {
         "200": {

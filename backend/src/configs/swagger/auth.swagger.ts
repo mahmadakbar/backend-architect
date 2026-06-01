@@ -1,3 +1,5 @@
+import { securityHeaderParameters } from "./common.swagger";
+
 export const authSchemas = {
   RegisterRequest: {
     type: "object",
@@ -86,7 +88,8 @@ export const authPaths = {
       tags: ["Auth"],
       summary: "Register a new user",
       description:
-        "Create a new user account with username, password, and name",
+        "Create a new user account with username, password, and name. **Requires security headers**: x-content-type-options, x-xss-protection, strict-transport-security, x-frame-options (apikey is handled via ApiKeyAuth)",
+      parameters: securityHeaderParameters,
       requestBody: {
         required: true,
         content: {
@@ -145,7 +148,9 @@ export const authPaths = {
     post: {
       tags: ["Auth"],
       summary: "Login user",
-      description: "Authenticate user and receive JWT token",
+      description:
+        "Authenticate user and receive JWT token. **Requires security headers**: x-content-type-options, x-xss-protection, strict-transport-security, x-frame-options (apikey is handled via ApiKeyAuth)",
+      parameters: securityHeaderParameters,
       requestBody: {
         required: true,
         content: {

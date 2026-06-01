@@ -10,6 +10,7 @@ import {
 import validator from "@utils/validator.util";
 
 const router = Router();
+// Note: MApiKey middleware is applied at v1.routes.ts level
 router.use(MAuthToken);
 
 router.post("/", validator.body(VCreateTask), CCreateTask);

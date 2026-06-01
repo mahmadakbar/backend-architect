@@ -391,3 +391,72 @@ export const SCancelOrder = async (
     throw error;
   }
 };
+
+export const SUpdateOrderStatus = async (
+  orderId: number,
+  newStatus: string,
+  userId: number,
+  userRole: string,
+): Promise<any> => {
+  try {
+    // Only admin/superadmin can update order status
+    if (userRole !== "admin" && userRole !== "superadmin") {
+      throw new Error("Only admin or superadmin can update order status");
+    }
+
+    const order = await prisma.order.findUnique({
+      where: { id: orderId },
+      include: {
+        orderItems: true,
+      },
+    });
+
+    if (!order) {
+      throw new Error(`Order with ID ${orderId} not found`);
+    }
+
+    // Validate status transition
+    const validStatuses = ["PENDING", "PROCESSING", "COMPLETED", "CANCELLED"];
+    if (!validStatuses.includes(newStatus)) {
+      throw new Error(`Invalid status: ${newStatus}`);
+    }
+
+    // Prevent updating completed or cancelled orders
+    if (order.status === "COMPLETED" || order.status === "CANCELLED") {
+      throw new Error(
+        `Cannot update status of ${order.status.toLowerCase()} order`,
+      );
+    }
+
+    // Update order status
+    const updatedOrder = await prisma.order.update({
+      where: { id: orderId },
+      data: {
+        status: newStatus as
+          | "PENDING"
+          | "PROCESSING"
+          | "COMPLETED"
+          | "CANCELLED",
+      },
+      include: {
+        orderItems: {
+          include: {
+            product: true,
+          },
+        },
+        user: {
+          select: {
+            id: true,
+            username: true,
+            name: true,
+          },
+        },
+      },
+    });
+
+    return updatedOrder;
+  } catch (error: any) {
+    logger.error(error, "Order status update error");
+    throw error;
+  }
+};

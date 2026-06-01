@@ -4,6 +4,7 @@ import {
   SGetOrderById,
   SGetOrderHistory,
   SCancelOrder,
+  SUpdateOrderStatus,
 } from "./orders.service";
 import { HttpStatusCode } from "axios";
 import { handleError } from "@utils/error.utils";
@@ -128,6 +129,37 @@ export const CCancelOrder = async (
     res.status(HttpStatusCode.Ok).json({
       success: true,
       message: "Order cancelled successfully",
+      data: result || {},
+    });
+  } catch (error) {
+    handleError(error, next, HttpStatusCode.BadRequest);
+  }
+};
+
+export const CUpdateOrderStatus = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const { params, body, user } = req;
+    const orderId = Number(params.orderId);
+    const { status } = body;
+
+    if (!user?.id || !user?.role) {
+      throw new Error("User not authenticated");
+    }
+
+    const result = await SUpdateOrderStatus(
+      orderId,
+      status,
+      Number(user.id),
+      user.role,
+    );
+
+    res.status(HttpStatusCode.Ok).json({
+      success: true,
+      message: "Order status updated successfully",
       data: result || {},
     });
   } catch (error) {

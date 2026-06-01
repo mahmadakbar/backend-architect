@@ -1,3 +1,5 @@
+import { securityHeaderParameters } from "./common.swagger";
+
 export const userSchemas = {
   User: {
     type: "object",
@@ -77,8 +79,10 @@ export const userPaths = {
     get: {
       tags: ["Users"],
       summary: "Get all available roles",
-      description: "Retrieve all available roles in the system",
+      description:
+        "Retrieve all available roles in the system. **Requires security headers**",
       security: [{ bearerAuth: [] }],
+      parameters: securityHeaderParameters,
       responses: {
         "200": {
           description: "Roles retrieved successfully",
@@ -116,8 +120,10 @@ export const userPaths = {
     get: {
       tags: ["Users"],
       summary: "Get all users",
-      description: "Retrieve all users with their roles (superadmin only)",
+      description:
+        "Retrieve all users with their roles (superadmin only). **Requires security headers**",
       security: [{ bearerAuth: [] }],
+      parameters: securityHeaderParameters,
       responses: {
         "200": {
           description: "Users retrieved successfully",
@@ -163,7 +169,8 @@ export const userPaths = {
     put: {
       tags: ["Users"],
       summary: "Change user role",
-      description: "Update a user's role (superadmin only)",
+      description:
+        "Update a user's role (superadmin only). **Requires security headers**",
       security: [{ bearerAuth: [] }],
       parameters: [
         {
@@ -173,6 +180,7 @@ export const userPaths = {
           schema: { type: "integer" },
           description: "User ID",
         },
+        ...securityHeaderParameters,
       ],
       requestBody: {
         required: true,

@@ -2,9 +2,13 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { IApiResOrder } from "@interfaces/api";
-import { getOrderHistory, cancelOrder } from "@services/api/orders";
+import {
+  getOrderHistory,
+  cancelOrder,
+  updateOrderStatus,
+} from "@services/api/orders";
 import { Button } from "@components/atoms/button";
-import { Eye, XCircle } from "lucide-react";
+import { Eye, XCircle, Edit } from "lucide-react";
 import { formatCurrency } from "@utils";
 import { useDebounce } from "@hooks/useDebounce";
 import { OrderDetailsModal } from "./OrderDetailsModal";
@@ -25,6 +29,8 @@ export function OrderManagementTable() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [selectedOrder, setSelectedOrder] = useState<IApiResOrder | null>(null);
+  const [editingStatusId, setEditingStatusId] = useState<number | null>(null);
+  const [newStatus, setNewStatus] = useState<string>("");
 
   const fetchOrders = useCallback(async () => {
     setFetching(true);
@@ -58,6 +64,37 @@ export function OrderManagementTable() {
     } else {
       alert((result as any).error?.message || "Failed to cancel order");
     }
+  };
+
+  const handleUpdateStatus = async (id: number, status: string) => {
+    if (
+      !confirm(
+        `Are you sure you want to update this order status to ${status}?`,
+      )
+    )
+      return;
+
+    const result = await updateOrderStatus(
+      id,
+      status as "PENDING" | "PROCESSING" | "COMPLETED" | "CANCELLED",
+    );
+    if (result.success) {
+      setEditingStatusId(null);
+      setNewStatus("");
+      fetchOrders();
+    } else {
+      alert((result as any).error?.message || "Failed to update order status");
+    }
+  };
+
+  const startEditingStatus = (order: IApiResOrder) => {
+    setEditingStatusId(order.id);
+    setNewStatus(order.status);
+  };
+
+  const cancelEditingStatus = () => {
+    setEditingStatusId(null);
+    setNewStatus("");
   };
 
   const getStatusBadge = (status: string) => {
@@ -105,7 +142,32 @@ export function OrderManagementTable() {
     {
       key: "status",
       label: "Status",
-      render: (order) => getStatusBadge(order.status),
+      render: (order) =>
+        editingStatusId === order.id ? (
+          <div className="flex gap-2 items-center">
+            <select
+              value={newStatus}
+              onChange={(e) => setNewStatus(e.target.value)}
+              className="px-2 py-1 border rounded text-sm"
+            >
+              <option value="PENDING">PENDING</option>
+              <option value="PROCESSING">PROCESSING</option>
+              <option value="COMPLETED">COMPLETED</option>
+              <option value="CANCELLED">CANCELLED</option>
+            </select>
+            <Button
+              size="sm"
+              onClick={() => handleUpdateStatus(order.id, newStatus)}
+            >
+              Save
+            </Button>
+            <Button size="sm" variant="outline" onClick={cancelEditingStatus}>
+              Cancel
+            </Button>
+          </div>
+        ) : (
+          getStatusBadge(order.status)
+        ),
     },
     {
       key: "createdAt",
@@ -120,6 +182,15 @@ export function OrderManagementTable() {
       icon: <Eye className="w-4 h-4" />,
       onClick: (order) => setSelectedOrder(order),
       variant: "outline",
+    },
+    {
+      icon: <Edit className="w-4 h-4" />,
+      onClick: (order) => startEditingStatus(order),
+      variant: "outline",
+      show: (order) =>
+        order.status !== "COMPLETED" &&
+        order.status !== "CANCELLED" &&
+        editingStatusId !== order.id,
     },
     {
       icon: <XCircle className="w-4 h-4" />,

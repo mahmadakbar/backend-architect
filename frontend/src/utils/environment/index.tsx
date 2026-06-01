@@ -6,4 +6,5 @@ export const env = {
   KEY: {
     SECRET: process.env.NEXT_PUBLIC_KEY_SECRET || "",
   },
+  APIKEY: process.env.NEXT_PUBLIC_APIKEY || "",
 };

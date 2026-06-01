@@ -15,9 +15,12 @@ A robust and scalable RESTful API for e-commerce built with modern technologies 
    - [Docker Setup](#docker-setup)
 
 - [API Documentation](#-api-documentation)
+   - [Required Security Headers](#-required-security-headers)
 - [Adding New APIs](#-adding-new-apis)
 - [Environment Variables](#-environment-variables)
 - [Available Scripts](#-available-scripts)
+- [Functional Testing](#-functional-testing)
+- [Security Features](#-security-features)
 
 ---
 
@@ -87,6 +90,34 @@ This project leverages modern and production-ready technologies:
 - **ts-node** - TypeScript execution for Node.js
 - **Jest** - Testing framework
 - **Supertest** - HTTP assertion library for testing
+
+### Rate Limiting & Queue Management
+
+- **Redis** - In-memory data structure store
+   - Rate limiting with atomic operations
+   - Request queue management
+   - Session storage
+   - Real-time data caching
+
+- **ioredis** - Advanced Redis client
+   - Connection pooling
+   - Automatic reconnection
+   - TypeScript support
+   - Atomic operations (INCR, PEXPIRE)
+
+- **Socket.IO** - Real-time bidirectional communication
+   - Queue status updates
+   - WebSocket connections with automatic fallback
+   - Room-based event broadcasting
+
+**Rate Limiting Features:**
+- Token bucket algorithm with Redis
+- UX-friendly: Returns 202 Accepted instead of errors
+- Queue system for rate-limited requests
+- Real-time queue status updates via Socket.IO
+- Automatic request processing by background worker
+
+📖 See [RATE_LIMITING_GUIDE.md](../RATE_LIMITING_GUIDE.md) for detailed documentation
 
 ### Data Encryption
 
@@ -344,6 +375,36 @@ Interactive API documentation is available via **Swagger UI**.
 2. Enter your token in the format: `Bearer <your-access-token>`
 3. Click "Authorize" to authenticate all requests
 
+### 🔐 Required Security Headers
+
+**All API requests MUST include the following headers:**
+
+| Header | Required Value | Description |
+|--------|---------------|-------------|
+| `apikey` | Your API key from `.env` | API authentication key |
+| `x-content-type-options` | `nosniff` | Prevents MIME type sniffing |
+| `x-xss-protection` | `1; mode=block` | Enables XSS protection |
+| `strict-transport-security` | `max-age=31536000; includeSubDomains; preload` | Enforces HTTPS |
+| `x-frame-options` | `SAMEORIGIN` | Prevents clickjacking |
+
+**Example Request:**
+
+```bash
+curl -X GET "http://localhost:3131/api/v1/products" \
+  -H "apikey: sk_live_9K8mN3pQ7rT2vX5wY1zC4bF6hJ8nL0sA" \
+  -H "x-content-type-options: nosniff" \
+  -H "x-xss-protection: 1; mode=block" \
+  -H "strict-transport-security: max-age=31536000; includeSubDomains; preload" \
+  -H "x-frame-options: SAMEORIGIN"
+```
+
+**Error Responses:**
+
+- `401 Unauthorized` - Missing or invalid API key
+- `400 Bad Request` - Invalid security header values
+
+**Note:** The frontend automatically includes these headers when using the configured axios instance. See `frontend/src/services/network/index.ts` for implementation.
+
 ---
 
 ## ➕ Adding New APIs
@@ -570,11 +631,15 @@ router.post('/', validator.body(VCreateItem), CCreateItem);
 | `BRANCH` | Branch name | development | No |
 | `LOG_LEVEL` | Logging level (info/debug/error) | info | No |
 | `DATABASE_URL` | PostgreSQL connection string | - | Yes |
+| `APIKEY` | API key for request authentication | - | Yes |
 | `JWT_ACCESS_SECRET` | Secret key for access tokens | - | Yes |
 | `JWT_REFRESH_SECRET` | Secret key for refresh tokens | - | Yes |
 | `JWT_ACCESS_EXPIRES` | Access token expiration | 60m | No |
 | `JWT_REFRESH_EXPIRES` | Refresh token expiration | 7d | No |
 | `KEY_SECRET` | Encryption key (32 characters) | - | Yes |
+| `REDIS_URL` | Redis connection URL | redis://localhost:6379 | Yes |
+| `RATE_LIMIT_MAX_REQUESTS` | Max requests per window | 10 | No |
+| `RATE_LIMIT_WINDOW_MS` | Rate limit time window (ms) | 60000 | No |
 
 ---
 
@@ -601,8 +666,107 @@ router.post('/', validator.body(VCreateItem), CCreateItem);
 
 ---
 
+## 🧪 Functional Testing
+
+The project includes functional test scripts located in `src/tests/functionals/`.
+
+### Test Files
+
+#### 1. Rate Limiting Test (`test-rate-limit-simple.js`)
+Tests the rate limiting and queue system without authentication.
+
+```bash
+# Start the backend first
+bun run dev
+
+# In another terminal, run the test
+node src/tests/functionals/test-rate-limit-simple.js
+```
+
+**What it tests:**
+- Rate limit enforcement (10 requests per 60 seconds)
+- Queue system when rate limit exceeded
+- 202 Accepted responses with queue tokens
+- Queue position and estimated wait time
+- Queue status polling
+- Request processing by queue worker
+
+**Expected Results:**
+- First 10 requests: 200 OK (processed immediately)
+- Requests 11-15: 202 Accepted (queued)
+- Queued requests processed within seconds
+
+#### 2. Full Rate Limiting Test (`test-rate-limit.js`)
+Comprehensive rate limiting test with user authentication.
+
+```bash
+node src/tests/functionals/test-rate-limit.js
+```
+
+**What it tests:**
+- User registration and login
+- Authenticated rate limiting
+- Normal requests under rate limit
+- Queue behavior when exceeding limits
+- Queue depth tracking
+
+#### 3. Swagger Documentation Test (`test-swagger.js`)
+Validates that the Swagger documentation is properly generated.
+
+```bash
+node src/tests/functionals/test-swagger.js
+```
+
+**What it tests:**
+- Swagger endpoint accessibility
+- API documentation generation
+- Endpoint definitions
+
+### Running All Tests
+
+```bash
+# Start Redis and PostgreSQL
+docker-compose up -d redis postgres
+
+# Start the backend
+bun run dev
+
+# In another terminal, run tests
+node src/tests/functionals/test-rate-limit-simple.js
+node src/tests/functionals/test-swagger.js
+```
+
+### Test Output Example
+
+```
+🚀 Starting Rate Limit and Queue Tests
+
+Configuration:
+  Rate Limit: 10 requests per 60 seconds
+  Base URL: http://localhost:3131/api/v1
+  Endpoint: GET /products
+
+📊 Results after 0.06s:
+  ✅ Normal requests (200): 10
+  ⏳ Queued requests (202): 5
+  ❌ Errored requests: 0
+
+⏳ Queued Request #10:
+   Queue Token: 719bfd7d-84bd-4e0f-9076-d12b7fa6d862
+   Position: 1/5
+   Estimated Wait: 2s
+```
+
+---
+
 ## 🔒 Security Features
 
+- **API Key Authentication**: All requests must include valid API key in headers
+- **Security Headers Validation**: Enforced security headers on all requests
+  - `x-content-type-options: nosniff` - Prevents MIME type sniffing
+  - `x-xss-protection: 1; mode=block` - Enables XSS protection
+  - `strict-transport-security: max-age=31536000; includeSubDomains; preload` - Enforces HTTPS
+  - `x-frame-options: SAMEORIGIN` - Prevents clickjacking
 - **JWT Authentication**: Secure token-based authentication
 - **Password Hashing**: Bcrypt for secure password storage
 - **Helmet**: Security headers to protect against common vulnerabilities
@@ -610,6 +774,9 @@ router.post('/', validator.body(VCreateItem), CCreateItem);
 - **Data Encryption**: AES-256-CBC encryption for sensitive data
 - **Request Validation**: Input validation using Joi/Zod
 - **Error Handling**: Centralized error handler that doesn't leak sensitive information
+- **Rate Limiting**: Redis-based rate limiting with queue system
+
+See [Required Security Headers](#-required-security-headers) section for implementation details.
 
 ---
 

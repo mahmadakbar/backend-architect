@@ -1,3 +1,5 @@
+import { securityHeaderParameters } from "./common.swagger";
+
 export const orderSchemas = {
   CreateOrderRequest: {
     type: "object",
@@ -131,8 +133,10 @@ export const orderPaths = {
     post: {
       tags: ["Orders"],
       summary: "Create a new order",
-      description: "Create a new order (User only)",
+      description:
+        "Create a new order (User only). **Requires security headers**",
       security: [{ bearerAuth: [] }],
+      parameters: securityHeaderParameters,
       requestBody: {
         required: true,
         content: {
@@ -184,7 +188,7 @@ export const orderPaths = {
       tags: ["Orders"],
       summary: "Get order history with advanced search and filtering",
       description:
-        "Get order history for current user with search, filter, and sort. Admin/Superadmin can see all orders",
+        "Get order history for current user with search, filter, and sort. Admin/Superadmin can see all orders. **Requires security headers**",
       security: [{ bearerAuth: [] }],
       parameters: [
         {
@@ -241,6 +245,7 @@ export const orderPaths = {
           schema: { type: "string", enum: ["asc", "desc"], default: "asc" },
           description: "Sort order",
         },
+        ...securityHeaderParameters,
       ],
       responses: {
         "200": {
@@ -280,7 +285,8 @@ export const orderPaths = {
     get: {
       tags: ["Orders"],
       summary: "Get order details",
-      description: "Get detailed information about a specific order",
+      description:
+        "Get detailed information about a specific order. **Requires security headers**",
       security: [{ bearerAuth: [] }],
       parameters: [
         {
@@ -290,6 +296,7 @@ export const orderPaths = {
           schema: { type: "integer" },
           description: "Order ID",
         },
+        ...securityHeaderParameters,
       ],
       responses: {
         "200": {
@@ -341,7 +348,8 @@ export const orderPaths = {
     post: {
       tags: ["Orders"],
       summary: "Cancel an order",
-      description: "Cancel an order (Admin/Superadmin only)",
+      description:
+        "Cancel an order (Admin/Superadmin only). **Requires security headers**",
       security: [{ bearerAuth: [] }],
       parameters: [
         {
@@ -351,6 +359,7 @@ export const orderPaths = {
           schema: { type: "integer" },
           description: "Order ID",
         },
+        ...securityHeaderParameters,
       ],
       responses: {
         "200": {
@@ -373,6 +382,97 @@ export const orderPaths = {
         },
         "400": {
           description: "Bad request - Order cannot be cancelled",
+          content: {
+            "application/json": {
+              schema: { $ref: "#/components/schemas/ErrorResponse" },
+            },
+          },
+        },
+        "401": {
+          description: "Unauthorized",
+          content: {
+            "application/json": {
+              schema: { $ref: "#/components/schemas/ErrorResponse" },
+            },
+          },
+        },
+        "403": {
+          description: "Forbidden - Admin access required",
+          content: {
+            "application/json": {
+              schema: { $ref: "#/components/schemas/ErrorResponse" },
+            },
+          },
+        },
+        "404": {
+          description: "Order not found",
+          content: {
+            "application/json": {
+              schema: { $ref: "#/components/schemas/ErrorResponse" },
+            },
+          },
+        },
+      },
+    },
+  },
+  "/api/v1/orders/{orderId}/status": {
+    patch: {
+      tags: ["Orders"],
+      summary: "Update order status",
+      description:
+        "Update the status of an order (Admin/Superadmin only). Cannot update completed or cancelled orders. **Requires security headers**",
+      security: [{ bearerAuth: [] }],
+      parameters: [
+        {
+          name: "orderId",
+          in: "path",
+          required: true,
+          schema: { type: "integer" },
+          description: "Order ID",
+        },
+        ...securityHeaderParameters,
+      ],
+      requestBody: {
+        required: true,
+        content: {
+          "application/json": {
+            schema: {
+              type: "object",
+              required: ["status"],
+              properties: {
+                status: {
+                  type: "string",
+                  enum: ["PENDING", "PROCESSING", "COMPLETED", "CANCELLED"],
+                  example: "PROCESSING",
+                  description: "New order status",
+                },
+              },
+            },
+          },
+        },
+      },
+      responses: {
+        "200": {
+          description: "Order status updated successfully",
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  success: { type: "boolean", example: true },
+                  message: {
+                    type: "string",
+                    example: "Order status updated successfully",
+                  },
+                  data: { $ref: "#/components/schemas/Order" },
+                },
+              },
+            },
+          },
+        },
+        "400": {
+          description:
+            "Bad request - Invalid status or order cannot be updated",
           content: {
             "application/json": {
               schema: { $ref: "#/components/schemas/ErrorResponse" },

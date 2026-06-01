@@ -4,6 +4,11 @@ import { IApiRes, IApiResPaginatedOrders, IApiResOrder } from "@interfaces/api";
 import network from "@services/network";
 import { getSession } from "@services/session";
 import { errorMessage } from "@utils/messages/errorMessage";
+import {
+  pollQueueStatus,
+  QueueStatus,
+  QueueResponse,
+} from "@services/api/queue";
 
 export type IOrderFilter = {
   page?: number;
@@ -69,12 +74,53 @@ export const getOrderById = async (id: number) => {
   }
 };
 
-export const createOrder = async (data: ICreateOrderPayload) => {
+export const createOrder = async (
+  data: ICreateOrderPayload,
+  onProgress?: (status: QueueStatus) => void,
+) => {
   try {
     const session = await getSession();
-    const response = await network.post<IApiRes<IApiResOrder>>(
-      "/v1/orders",
-      data,
+    const response = await network.post<
+      IApiRes<IApiResOrder> | (IApiRes<null> & QueueResponse)
+    >("/v1/orders", data, {
+      headers: {
+        Authorization: `Bearer ${session?.accessToken}`,
+      },
+    });
+
+    // Check if response is 202 (queued)
+    if (response.status === 202) {
+      const queueData = response.data as IApiRes<null> & QueueResponse;
+      const queueToken = queueData.queue.token;
+
+      console.log(
+        `Order queued - Position: ${queueData.queue.position}/${queueData.queue.total}, Estimated wait: ${queueData.queue.estimatedWait}s`,
+      );
+
+      // Poll for completion
+      const queueStatus = await pollQueueStatus(queueToken, onProgress);
+
+      if (queueStatus.status === "COMPLETED") {
+        // Return the order result from queue
+        return queueStatus.result as IApiRes<IApiResOrder>;
+      } else if (queueStatus.status === "FAILED") {
+        throw new Error(queueStatus.error || "Order processing failed");
+      }
+    }
+
+    // Direct response (status 200/201)
+    return response.data as IApiRes<IApiResOrder>;
+  } catch (error) {
+    return errorMessage(error);
+  }
+};
+
+export const cancelOrder = async (id: number) => {
+  try {
+    const session = await getSession();
+    const response = await network.patch<IApiRes<IApiResOrder>>(
+      `/v1/orders/${id}/cancel`,
+      {},
       {
         headers: {
           Authorization: `Bearer ${session?.accessToken}`,
@@ -87,12 +133,15 @@ export const createOrder = async (data: ICreateOrderPayload) => {
   }
 };
 
-export const cancelOrder = async (id: number) => {
+export const updateOrderStatus = async (
+  id: number,
+  status: "PENDING" | "PROCESSING" | "COMPLETED" | "CANCELLED",
+) => {
   try {
     const session = await getSession();
     const response = await network.patch<IApiRes<IApiResOrder>>(
-      `/v1/orders/${id}/cancel`,
-      {},
+      `/v1/orders/${id}/status`,
+      { status },
       {
         headers: {
           Authorization: `Bearer ${session?.accessToken}`,

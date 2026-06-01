@@ -3,7 +3,7 @@
   "info": {
     "version": "1.0.0",
     "title": "Task Management & E-Commerce API",
-    "description": "Comprehensive API documentation for Task Management and E-Commerce System with advanced search, filter, and sort capabilities"
+    "description": "Comprehensive API documentation for Task Management and E-Commerce System with advanced search, filter, and sort capabilities. \n\n**IMPORTANT**: All API v1 endpoints require the following security headers:\n- `apikey`: Your API key\n- `x-content-type-options`: nosniff\n- `x-xss-protection`: 1; mode=block\n- `strict-transport-security`: max-age=31536000; includeSubDomains; preload\n- `x-frame-options`: SAMEORIGIN"
   },
   "servers": [
     {
@@ -33,7 +33,479 @@
       "description": "Order management endpoints with search and filtering"
     }
   ],
-  "paths": {},
+  "paths": {
+    "/register": {
+      "post": {
+        "description": "",
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/login": {
+      "post": {
+        "description": "",
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/": {
+      "post": {
+        "description": "",
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "example": "any"
+                  },
+                  "description": {
+                    "example": "any"
+                  },
+                  "status": {
+                    "example": "any"
+                  },
+                  "deadline": {
+                    "example": "any"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "category",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "startDate",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "endDate",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortBy",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortOrder",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/update/{taskId}": {
+      "post": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "taskId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "example": "any"
+                  },
+                  "description": {
+                    "example": "any"
+                  },
+                  "status": {
+                    "example": "any"
+                  },
+                  "deadline": {
+                    "example": "any"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/{taskId}": {
+      "delete": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "taskId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/roles": {
+      "get": {
+        "description": "",
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/{userId}/role": {
+      "put": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "roleId": {
+                    "example": "any"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/search": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "search",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "category",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/{productId}": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "productId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
+      },
+      "put": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "productId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
+      },
+      "delete": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "productId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/history": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "startDate",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "endDate",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortBy",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortOrder",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/{orderId}": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/{orderId}/cancel": {
+      "post": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/{orderId}/status": {
+      "patch": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "status": {
+                    "example": "any"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
   "components": {
     "securitySchemes": {
       "bearerAuth": {
@@ -41,6 +513,64 @@
         "scheme": "bearer",
         "bearerFormat": "JWT",
         "description": "Enter JWT token"
+      },
+      "apiKeyAuth": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "apikey",
+        "description": "API Key for authentication"
+      }
+    },
+    "parameters": {
+      "ApiKeyHeader": {
+        "name": "apikey",
+        "in": "header",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "default": "sk_live_9K8mN3pQ7rT2vX5wY1zC4bF6hJ8nL0sA"
+        },
+        "description": "API Key for authentication"
+      },
+      "ContentTypeOptionsHeader": {
+        "name": "x-content-type-options",
+        "in": "header",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "default": "nosniff"
+        },
+        "description": "Prevents MIME type sniffing"
+      },
+      "XSSProtectionHeader": {
+        "name": "x-xss-protection",
+        "in": "header",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "default": "1; mode=block"
+        },
+        "description": "Enables XSS protection"
+      },
+      "StrictTransportSecurityHeader": {
+        "name": "strict-transport-security",
+        "in": "header",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "default": "max-age=31536000; includeSubDomains; preload"
+        },
+        "description": "Enforces HTTPS connections"
+      },
+      "FrameOptionsHeader": {
+        "name": "x-frame-options",
+        "in": "header",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "default": "SAMEORIGIN"
+        },
+        "description": "Prevents clickjacking attacks"
       }
     },
     "schemas": {
@@ -920,6 +1450,44 @@
                 }
               }
             }
+          }
+        }
+      },
+      "SecurityHeaders": {
+        "type": "object",
+        "description": "Required security headers for all API v1 endpoints",
+        "required": [
+          "apikey",
+          "x-content-type-options",
+          "x-xss-protection",
+          "strict-transport-security",
+          "x-frame-options"
+        ],
+        "properties": {
+          "apikey": {
+            "type": "string",
+            "example": "sk_live_9K8mN3pQ7rT2vX5wY1zC4bF6hJ8nL0sA",
+            "description": "API Key for authentication"
+          },
+          "x-content-type-options": {
+            "type": "string",
+            "example": "nosniff",
+            "description": "Prevents MIME type sniffing"
+          },
+          "x-xss-protection": {
+            "type": "string",
+            "example": "1; mode=block",
+            "description": "Enables XSS protection"
+          },
+          "strict-transport-security": {
+            "type": "string",
+            "example": "max-age=31536000; includeSubDomains; preload",
+            "description": "Enforces HTTPS connections"
+          },
+          "x-frame-options": {
+            "type": "string",
+            "example": "SAMEORIGIN",
+            "description": "Prevents clickjacking attacks"
           }
         }
       }

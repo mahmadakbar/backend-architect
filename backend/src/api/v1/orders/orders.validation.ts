@@ -26,3 +26,9 @@ export const VOrderPagination: Joi.ObjectSchema = Joi.object({
     .optional(),
   sortOrder: Joi.string().valid("asc", "desc").optional().default("asc"),
 });
+
+export const VUpdateOrderStatus: Joi.ObjectSchema = Joi.object({
+  status: Joi.string()
+    .valid("PENDING", "PROCESSING", "COMPLETED", "CANCELLED")
+    .required(),
+});

@@ -1,17 +1,26 @@
 import { IApiError } from "@interfaces/api";
 import { env } from "@utils/environment";
-import axios, { AxiosError } from "axios";
+import axios, { AxiosError, AxiosResponse } from "axios";
 
 const network = axios.create({
   baseURL: env.API_URL,
   headers: {
     "Content-Type": "application/json",
+    apikey: env.APIKEY,
+    "x-content-type-options": "nosniff",
+    "x-xss-protection": "1; mode=block",
+    "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+    "x-frame-options": "SAMEORIGIN",
   },
 });
 
 // Response interceptor
 network.interceptors.response.use(
-  (response) => response,
+  (response: AxiosResponse) => {
+    // Handle 202 Accepted (queued requests) differently
+    // We'll pass it through so the caller can handle it
+    return response;
+  },
   (error: AxiosError) => {
     const { response } = error;
 
@@ -23,10 +32,10 @@ network.interceptors.response.use(
       if (response?.data) {
         console.log(
           "Response status code:",
-          (response.data as IApiError).error.message
+          (response.data as IApiError).error.message,
         );
         return Promise.reject(
-          new Error((response.data as IApiError).error.message)
+          new Error((response.data as IApiError).error.message),
         );
       }
       switch (response.status) {
@@ -46,7 +55,8 @@ network.interceptors.response.use(
     }
 
     return Promise.reject(error);
-  }
+  },
 );
 
 export default network;
+export { network as axiosInstance };

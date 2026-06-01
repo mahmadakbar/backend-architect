@@ -1,19 +1,26 @@
 import { MAuthToken, MIsAdminOrAbove } from "@middlewares";
 import { Router } from "express";
-import { VCreateOrder, VOrderPagination } from "./orders.validation";
+import {
+  VCreateOrder,
+  VOrderPagination,
+  VUpdateOrderStatus,
+} from "./orders.validation";
 import {
   CCreateOrder,
   CGetOrderById,
   CGetOrderHistory,
   CCancelOrder,
+  CUpdateOrderStatus,
 } from "./orders.controller";
 import validator from "@utils/validator.util";
 
 const router = Router();
 
+// Note: MApiKey and MRateLimitWithQueue middlewares are applied at v1.routes.ts level
 // All order routes require authentication
 router.use(MAuthToken);
 
+// Create order route
 router.post("/", validator.body(VCreateOrder), CCreateOrder);
 // #swagger.tags = ['Orders']
 // #swagger.summary = 'Create a new order'
@@ -168,6 +175,56 @@ router.post("/:orderId/cancel", MIsAdminOrAbove, CCancelOrder);
         properties: {
           success: { type: 'boolean', example: true },
           message: { type: 'string', example: 'Order cancelled successfully' },
+          data: { $ref: '#/definitions/Order' }
+        }
+      }
+    }
+  }
+} */
+
+router.patch(
+  "/:orderId/status",
+  MIsAdminOrAbove,
+  validator.body(VUpdateOrderStatus),
+  CUpdateOrderStatus,
+);
+// #swagger.tags = ['Orders']
+// #swagger.summary = 'Update order status'
+// #swagger.description = 'Update the status of an order (Admin/Superadmin only)'
+// #swagger.security = [{ "bearerAuth": [] }]
+/* #swagger.parameters['orderId'] = {
+  in: 'path',
+  description: 'Order ID',
+  required: true,
+  type: 'integer'
+} */
+/* #swagger.requestBody = {
+  required: true,
+  content: {
+    "application/json": {
+      schema: {
+        type: 'object',
+        properties: {
+          status: {
+            type: 'string',
+            enum: ['PENDING', 'PROCESSING', 'COMPLETED', 'CANCELLED'],
+            description: 'New order status'
+          }
+        },
+        required: ['status']
+      }
+    }
+  }
+} */
+/* #swagger.responses[200] = {
+  description: 'Order status updated successfully',
+  content: {
+    "application/json": {
+      schema: {
+        type: 'object',
+        properties: {
+          success: { type: 'boolean', example: true },
+          message: { type: 'string', example: 'Order status updated successfully' },
           data: { $ref: '#/definitions/Order' }
         }
       }

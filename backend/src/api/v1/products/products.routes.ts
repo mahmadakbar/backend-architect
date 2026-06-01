@@ -17,7 +17,8 @@ import validator from "@utils/validator.util";
 
 const router = Router();
 
-// Public routes (no auth required)
+// Note: MApiKey middleware is applied at v1.routes.ts level for all routes
+// Public routes (no auth required, but API key and headers still validated)
 router.get("/", validator.query(VProductPagination), CGetProducts);
 // #swagger.tags = ['Products']
 // #swagger.summary = 'Get all products with pagination and advanced filtering'
