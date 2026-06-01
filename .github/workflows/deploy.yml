@@ -10,6 +10,31 @@ jobs:
     name: Run Tests Before Deploy
     runs-on: ubuntu-latest
 
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: test_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     defaults:
       run:
         working-directory: ./backend
@@ -28,17 +53,43 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Generate Prisma Client
+        run: npx prisma generate --schema=./src/prisma/schema.prisma
+
+      - name: Run Prisma migrations
+        run: npx prisma migrate deploy --schema=./src/prisma/schema.prisma
+        env:
+          DATABASE_URL: postgresql://test:test@localhost:5432/test_db?schema=public
+
       - name: Run unit tests
         run: npm test
         env:
           NODE_ENV: test
-          JWT_SECRET: test-jwt-secret-key
+          DATABASE_URL: postgresql://test:test@localhost:5432/test_db?schema=public
+          JWT_ACCESS_SECRET: test-jwt-access-secret-key-for-ci-cd
+          JWT_REFRESH_SECRET: test-jwt-refresh-secret-key-for-ci-cd
+          JWT_ACCESS_EXPIRES: 60m
+          JWT_REFRESH_EXPIRES: 7d
+          KEY_SECRET: test-encryption-key-secret
+          APIKEY: test-api-key-for-ci-cd
+          REDIS_URL: redis://localhost:6379
+          RATE_LIMIT_WINDOW_MS: 60000
+          RATE_LIMIT_MAX_REQUESTS: 10
 
       - name: Run coverage tests
         run: npm run test:coverage
         env:
           NODE_ENV: test
-          JWT_SECRET: test-jwt-secret-key
+          DATABASE_URL: postgresql://test:test@localhost:5432/test_db?schema=public
+          JWT_ACCESS_SECRET: test-jwt-access-secret-key-for-ci-cd
+          JWT_REFRESH_SECRET: test-jwt-refresh-secret-key-for-ci-cd
+          JWT_ACCESS_EXPIRES: 60m
+          JWT_REFRESH_EXPIRES: 7d
+          KEY_SECRET: test-encryption-key-secret
+          APIKEY: test-api-key-for-ci-cd
+          REDIS_URL: redis://localhost:6379
+          RATE_LIMIT_WINDOW_MS: 60000
+          RATE_LIMIT_MAX_REQUESTS: 10
 
       - name: Check coverage threshold
         run: |

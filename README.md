@@ -112,7 +112,7 @@ For detailed Docker documentation, see [DOCKER.md](./DOCKER.md)
 
 ## 📊 OpenTelemetry & Observability (Optional)
 
-📚 **Documentation**: 
+📚 **Documentation**:
 
 - OpenTelemetry: See [backend/OPENTELEMETRY.md](backend/OPENTELEMETRY.md)- Rate Limiting: See [RATE_LIMITING_GUIDE.md](RATE_LIMITING_GUIDE.md)
 
@@ -122,13 +122,13 @@ For detailed Docker documentation, see [DOCKER.md](./DOCKER.md)
 2. **Open Jaeger UI** at http://localhost:16686
 3. **Select service**: `ecommerce-backend`
 4. **View traces**: See request flows, timing, and performance
-5. **Debug issues**: Use trace_id from logs to find specific requests
+5. __Debug issues__: Use trace_id from logs to find specific requests
 
 ### Features
 
 - 🔍 **Distributed Tracing**: Track requests across services
 - 📊 **Performance Metrics**: Monitor application performance
-- 🔗 **Log Correlation**: All logs include trace_id for easy debugging
+- 🔗 __Log Correlation__: All logs include trace_id for easy debugging
 - 🎯 **Automatic Instrumentation**: HTTP, Express, Prisma automatically traced
 - 🐛 **Error Tracking**: Exceptions and errors linked to traces
 
@@ -250,6 +250,7 @@ Interactive API documentation: http://localhost:3131/api-docs
 | `x-frame-options` | `SAMEORIGIN` |
 
 **Example:**
+
 ```bash
 curl "http://localhost:3131/api/v1/products" \
   -H "apikey: your-api-key" \
@@ -389,6 +390,7 @@ node backend/src/tests/functionals/test-rate-limit.js
 ```
 
 **What gets tested:**
+
 - ✅ Rate limit enforcement (10 requests per 60 seconds)
 - ✅ Queue system for rate-limited requests
 - ✅ 202 Accepted responses with queue tokens
@@ -396,7 +398,8 @@ node backend/src/tests/functionals/test-rate-limit.js
 - ✅ Automatic request processing
 
 **Expected output:**
-```
+
+```ini
 🚀 Starting Rate Limit and Queue Tests
 
 📊 Results:
@@ -423,8 +426,6 @@ bun test                    # Run all tests
 bun test:watch             # Watch mode
 bun test:coverage          # With coverage report
 ```
-
-📖 For detailed rate limiting documentation, see [RATE_LIMITING_GUIDE.md](RATE_LIMITING_GUIDE.md)
 
 ## 🚢 Deployment
 

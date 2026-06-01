@@ -1,11 +1,10 @@
 const axios = require("axios");
-require("dotenv").config({ path: "../../.env" });
 
 // API configuration
 const BASE_URL = "http://localhost:3131/api/v1";
 const headers = {
   "Content-Type": "application/json",
-  apikey: process.env.APIKEY || "your-api-key-here",
+  apikey: "sk_live_9K8mN3pQ7rT2vX5wY1zC4bF6hJ8nL0sA",
   "x-content-type-options": "nosniff",
   "x-xss-protection": "1; mode=block",
   "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
