@@ -5,6 +5,7 @@ import {
   generateOrderItemCode,
 } from "@utils/codeGenerator.util";
 import logger from "@configs/logger.configs";
+import { withSpan, addSpanEvent, setSpanAttribute } from "@utils/tracing.util";
 
 export interface IOrderItem {
   product_id: number;

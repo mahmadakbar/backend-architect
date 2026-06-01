@@ -5,20 +5,20 @@ export const authSchemas = {
     properties: {
       username: {
         type: "string",
-        example: "johndoe",
+        example: "superadmin",
         minLength: 3,
         maxLength: 50,
         description: "Username (3-50 characters)",
       },
       password: {
         type: "string",
-        example: "password123",
+        example: "SuperAdmin@123",
         minLength: 6,
         description: "Password (min 6 characters)",
       },
       name: {
         type: "string",
-        example: "John Doe",
+        example: "Super Administrator",
         minLength: 2,
         maxLength: 100,
         description: "Full name (2-100 characters)",
@@ -31,11 +31,11 @@ export const authSchemas = {
     properties: {
       username: {
         type: "string",
-        example: "johndoe",
+        example: "superadmin",
       },
       password: {
         type: "string",
-        example: "password123",
+        example: "SuperAdmin@123",
       },
     },
   },
@@ -66,11 +66,11 @@ export const authSchemas = {
               },
               username: {
                 type: "string",
-                example: "johndoe",
+                example: "superadmin",
               },
               name: {
                 type: "string",
-                example: "John Doe",
+                example: "Super Administrator",
               },
             },
           },

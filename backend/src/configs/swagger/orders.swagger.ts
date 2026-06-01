@@ -114,11 +114,11 @@ export const orderSchemas = {
           },
           username: {
             type: "string",
-            example: "johndoe",
+            example: "superadmin",
           },
           name: {
             type: "string",
-            example: "John Doe",
+            example: "Super Administrator",
           },
         },
       },

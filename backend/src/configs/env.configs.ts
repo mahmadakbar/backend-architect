@@ -16,6 +16,13 @@ const env = {
   KEY: {
     SECRET: process.env.KEY_SECRET || "",
   },
+  TELEMETRY: {
+    ENABLED: process.env.TELEMETRY_ENABLED === "true",
+    SERVICE_NAME: process.env.TELEMETRY_SERVICE_NAME || "ecommerce-backend",
+    SERVICE_VERSION: process.env.TELEMETRY_SERVICE_VERSION || "1.0.0",
+    OTLP_ENDPOINT:
+      process.env.TELEMETRY_OTLP_ENDPOINT || "http://localhost:4318",
+  },
 };
 
 export default env;

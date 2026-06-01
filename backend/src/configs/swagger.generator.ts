@@ -53,15 +53,15 @@ const doc = {
         properties: {
           username: {
             type: "string",
-            example: "johndoe",
+            example: "superadmin",
           },
           password: {
             type: "string",
-            example: "password123",
+            example: "SuperAdmin@123",
           },
           name: {
             type: "string",
-            example: "John Doe",
+            example: "Super Administrator",
           },
         },
       },
@@ -71,11 +71,11 @@ const doc = {
         properties: {
           username: {
             type: "string",
-            example: "johndoe",
+            example: "superadmin",
           },
           password: {
             type: "string",
-            example: "password123",
+            example: "SuperAdmin@123",
           },
         },
       },

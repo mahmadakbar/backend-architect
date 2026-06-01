@@ -1,4 +1,5 @@
 import pino from "pino";
+import { trace, context } from "@opentelemetry/api";
 import env from "./env.configs";
 
 let transport;
@@ -26,6 +27,18 @@ const logger = pino({
     },
   },
   timestamp: pino.stdTimeFunctions.isoTime,
+  // Mixin to add trace context to every log
+  mixin() {
+    const span = trace.getSpan(context.active());
+    if (!span) return {};
+
+    const spanContext = span.spanContext();
+    return {
+      trace_id: spanContext.traceId,
+      span_id: spanContext.spanId,
+      trace_flags: spanContext.traceFlags,
+    };
+  },
 });
 
 export default logger;

@@ -1,6 +1,6 @@
-# Task Management API
+# E-Commerce API
 
-A robust and scalable RESTful API for task management built with modern technologies including Express.js, Prisma ORM, JWT authentication, and comprehensive API documentation.
+A robust and scalable RESTful API for e-commerce built with modern technologies including Express.js, Prisma ORM, JWT authentication, and comprehensive API documentation.
 
 ---
 
@@ -585,14 +585,12 @@ router.post('/', validator.body(VCreateItem), CCreateItem);
 | `bun run dev` | Start development server with auto-reload |
 | `bun run build` | Build TypeScript to JavaScript |
 | `bun run start` | Start production server |
-| `bun run test` | Run all unit tests |
-| `bun run test:watch` | Run tests in watch mode (for development) |
-| `bun run test:coverage` | Run tests with coverage report |
-| `bun run test:ci` | Run tests in CI mode |
-| `bun run test:staged` | Run tests for staged files only |
 | `bun run prisma:migrate` | Run database migrations |
 | `bun run prisma:generate` | Generate Prisma Client |
 | `bun run prisma:studio` | Open Prisma Studio (database GUI) |
+| `bun run test` | Run tests |
+| `bun run test:watch` | Run tests in watch mode |
+| `bun run test:coverage` | Run tests with coverage report |
 | `bun run docker:build` | Build Docker images |
 | `bun run docker:up` | Start Docker services |
 | `bun run docker:down` | Stop Docker services |
@@ -600,67 +598,6 @@ router.post('/', validator.body(VCreateItem), CCreateItem);
 | `bun run docker:migrate` | Run migrations in Docker |
 | `bun run docker:studio` | Start Prisma Studio in Docker |
 | `bun run docker:clean` | Remove Docker volumes and containers |
-
----
-
-## 🧪 Testing
-
-This project includes comprehensive unit tests with automated testing on commits, pushes, and deployments.
-
-### Test Coverage
-
-- **43 unit tests** covering all backend services
-- **99.23%** statement coverage
-- **92.72%** branch coverage
-- **100%** function coverage
-
-### Quick Test Commands
-
-```bash
-# Run all tests
-npm test
-
-# Run with coverage report
-npm run test:coverage
-
-# Run in watch mode (development)
-npm run test:watch
-
-# Interactive test runner
-./run-tests.sh
-```
-
-### Automated Testing
-
-Tests run automatically on:
-- ✅ **Git commits** - Tests staged files before commit
-- ✅ **Git push** - Full test suite before push
-- ✅ **Pull requests** - CI/CD pipeline runs all tests
-- ✅ **Deployments** - Tests must pass before deployment
-
-### Test Files
-
-- `src/tests/auth.service.test.ts` - Authentication tests
-- `src/tests/tasks.service.test.ts` - Task management tests
-- `src/tests/users.service.test.ts` - User management tests
-
-### Documentation
-
-- 📘 **[TESTING.md](TESTING.md)** - Comprehensive testing guide
-- 🚀 **[QUICK_START_TESTING.md](QUICK_START_TESTING.md)** - Quick start guide
-- 📊 **[TEST_IMPLEMENTATION_SUMMARY.md](TEST_IMPLEMENTATION_SUMMARY.md)** - Implementation summary
-
-### Manual Test Trigger
-
-**Via GitHub Actions:**
-1. Go to repository → Actions tab
-2. Select "Backend Tests"
-3. Click "Run workflow"
-
-**Via Terminal:**
-```bash
-./run-tests.sh  # Interactive menu
-```
 
 ---
 

@@ -1,3 +1,6 @@
+// IMPORTANT: Initialize OpenTelemetry FIRST before any other imports
+import "./configs/telemetry.configs";
+
 import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
@@ -29,13 +32,13 @@ app.use(
     customSiteTitle: "Task Management & E-Commerce API Documentation",
   }),
 );
-console.log("✅ Swagger documentation available at /api-docs");
+logger.info("✅ Swagger documentation available at /api-docs");
 
 app.use("/api", apiRoutes);
 
 app.get("/", (req, res) => {
   res.json({
-    message: "Task Management API is running!",
+    message: "Task Management & E-Commerce API is running!",
     documentation: "/api-docs",
     version: "1.0.0",
   });
@@ -45,7 +48,7 @@ app.get("/", (req, res) => {
 app.use(MErrorHandler);
 
 app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+  logger.info(`🚀 Server is running on port ${PORT}`);
 });
 
 export default app;

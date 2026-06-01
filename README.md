@@ -1,6 +1,6 @@
-# 📝 Task Management Application
+# 📝 E-Commerce Application
 
-A full-stack task management application built with Next.js, Express.js, and PostgreSQL.
+A full-stack E-Commerce application built with Next.js, Express.js, and PostgreSQL.
 
 ## 🚀 Features
 
@@ -11,6 +11,8 @@ A full-stack task management application built with Next.js, Express.js, and Pos
 - 🎨 Modern UI with Tailwind CSS and shadcn/ui
 - 🔐 JWT-based authentication
 - 📱 Responsive design
+- 📊 **OpenTelemetry integration** - Distributed tracing, metrics, and log correlation
+- 🔍 **Jaeger UI** - Visual trace exploration and debugging
 
 ## 🛠️ Tech Stack
 
@@ -32,6 +34,8 @@ A full-stack task management application built with Next.js, Express.js, and Pos
 - **JWT** - Authentication
 - **Swagger** - API documentation
 - **Bun** - Runtime & package manager
+- **Pino** - Structured logging
+- **OpenTelemetry** - Observability & distributed tracing
 
 ## 📦 Project Structure
 
@@ -99,6 +103,41 @@ docker-compose down -v            # Remove everything including data
 ```
 
 For detailed Docker documentation, see [DOCKER.md](./DOCKER.md)
+
+## 📊 OpenTelemetry & Observability (Optional)
+
+📚 **Documentation**: See [backend/OPENTELEMETRY.md](backend/OPENTELEMETRY.md) for detailed usage and examples.
+
+### Using Jaeger
+
+1. **Make API requests** to your backend
+2. **Open Jaeger UI** at http://localhost:16686
+3. **Select service**: `ecommerce-backend`
+4. **View traces**: See request flows, timing, and performance
+5. **Debug issues**: Use trace_id from logs to find specific requests
+
+### Features
+
+- 🔍 **Distributed Tracing**: Track requests across services
+- 📊 **Performance Metrics**: Monitor application performance
+- 🔗 **Log Correlation**: All logs include trace_id for easy debugging
+- 🎯 **Automatic Instrumentation**: HTTP, Express, Prisma automatically traced
+- 🐛 **Error Tracking**: Exceptions and errors linked to traces
+
+```bash
+# 1. Add to your .env file
+TELEMETRY_ENABLED=true
+
+# 2. Start Jaeger for trace visualization
+docker-compose --profile monitoring up -d
+
+# 3. Access Jaeger UI
+open http://localhost:16686
+```
+
+### Enable OpenTelemetry Tracing
+
+The application includes OpenTelemetry for distributed tracing, metrics, and log correlation. This helps you understand request flows, identify bottlenecks, and debug issues in production.
 
 ## 💻 Local Development (Without Docker)
 
@@ -214,6 +253,15 @@ Interactive API documentation: http://localhost:3131/api-docs
 | JWT_ACCESS_SECRET | Access token secret | `openssl rand -base64 32` |
 | JWT_REFRESH_SECRET | Refresh token secret | `openssl rand -base64 32` |
 | KEY_SECRET | Encryption key | `openssl rand -base64 24` |
+
+### Optional Variables (OpenTelemetry)
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| TELEMETRY_ENABLED | Enable OpenTelemetry tracing | `false` |
+| TELEMETRY_SERVICE_NAME | Service name for tracing | `ecommerce-backend` |
+| TELEMETRY_SERVICE_VERSION | Service version | `1.0.0` |
+| TELEMETRY_OTLP_ENDPOINT | OpenTelemetry collector endpoint | `http://localhost:4318` |
 
 See `.env.example` files for all available options.
 

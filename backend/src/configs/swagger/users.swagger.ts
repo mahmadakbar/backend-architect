@@ -8,11 +8,11 @@ export const userSchemas = {
       },
       username: {
         type: "string",
-        example: "johndoe",
+        example: "superadmin",
       },
       name: {
         type: "string",
-        example: "John Doe",
+        example: "Super Administrator",
       },
       role_id: {
         type: "integer",
