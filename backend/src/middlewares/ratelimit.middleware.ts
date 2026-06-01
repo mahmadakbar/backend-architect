@@ -59,7 +59,7 @@ export const MRateLimitWithQueue = (config: RateLimitConfig = {}) => {
         resetTime,
       };
     } catch (error) {
-      logger.error("Rate limit check error:", error);
+      logger.error(error, "Rate limit check error:");
       // On error, allow the request (fail open)
       return {
         allowed: true,
@@ -124,7 +124,7 @@ export const MRateLimitWithQueue = (config: RateLimitConfig = {}) => {
       // Request allowed, continue to next middleware
       next();
     } catch (error) {
-      logger.error("Rate limiter middleware error:", error);
+      logger.error(error, "Rate limiter middleware error:");
       // On error, allow the request (fail open)
       next();
     }

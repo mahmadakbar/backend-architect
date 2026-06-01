@@ -167,7 +167,7 @@ export class QueueService {
       });
       logger.info(`Emitted completion event for queue token: ${queueToken}`);
     } catch (error) {
-      logger.error("Error emitting Socket.IO event:", error);
+      logger.error(error, "Error emitting Socket.IO event:");
     }
   }
 
@@ -198,7 +198,7 @@ export class QueueService {
       });
       logger.info(`Emitted failure event for queue token: ${queueToken}`);
     } catch (error) {
-      logger.error("Error emitting Socket.IO event:", error);
+      logger.error(error, "Error emitting Socket.IO event:");
     }
   }
 

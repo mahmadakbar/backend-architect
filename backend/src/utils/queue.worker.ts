@@ -1,6 +1,5 @@
 import { QueueService } from "@utils/queue.service";
 import logger from "@configs/logger.configs";
-import { app } from "../app";
 
 /**
  * Background worker to process queued requests
@@ -23,7 +22,7 @@ export class QueueWorker {
       try {
         await this.processNextRequest();
       } catch (error) {
-        logger.error("Queue worker error:", error);
+        logger.error(error, "Queue worker error:");
       }
     }, intervalMs);
   }

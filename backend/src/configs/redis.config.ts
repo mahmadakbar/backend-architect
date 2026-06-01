@@ -18,7 +18,7 @@ const redisClient = new Redis(env.REDIS_URL || "redis://localhost:6379", {
 });
 
 redisClient.on("error", (err) => {
-  logger.error("Redis Client Error:", err);
+  logger.error(err, "Redis Client Error:");
 });
 
 redisClient.on("connect", () => {

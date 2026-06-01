@@ -1,6 +1,6 @@
 import Redis from "ioredis";
 import { EnvConfig } from "./env.configs";
-import { logger } from "./logger.configs";
+import logger from "./logger.configs";
 
 class RedisClient {
   private static instance: Redis | null = null;
@@ -30,7 +30,7 @@ class RedisClient {
       });
 
       this.instance.on("error", (err: Error) => {
-        logger.error("Redis client error:", err);
+        logger.error(err, "Redis client error:");
       });
 
       this.instance.on("close", () => {
