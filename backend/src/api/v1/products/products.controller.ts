@@ -132,8 +132,17 @@ export const CGetProducts = async (
     res.status(HttpStatusCode.Ok).json({
       success: true,
       message: "Products retrieved successfully",
-      data: result.products,
-      metadata: result.metadata,
+      data: {
+        products: result.products,
+        pagination: {
+          total: result.metadata.totalData,
+          page: result.metadata.page,
+          limit: result.metadata.limit,
+          totalPages: result.metadata.totalPages,
+          hasNextPage: result.metadata.page < result.metadata.totalPages,
+          hasPrevPage: result.metadata.page > 1,
+        },
+      },
     });
   } catch (error) {
     handleError(error, next, HttpStatusCode.InternalServerError);
@@ -166,8 +175,17 @@ export const CSearchProducts = async (
     res.status(HttpStatusCode.Ok).json({
       success: true,
       message: "Products search completed",
-      data: result.products,
-      metadata: result.metadata,
+      data: {
+        products: result.products,
+        pagination: {
+          total: result.metadata.totalData,
+          page: result.metadata.page,
+          limit: result.metadata.limit,
+          totalPages: result.metadata.totalPages,
+          hasNextPage: result.metadata.page < result.metadata.totalPages,
+          hasPrevPage: result.metadata.page > 1,
+        },
+      },
     });
   } catch (error) {
     handleError(error, next, HttpStatusCode.InternalServerError);

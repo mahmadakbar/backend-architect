@@ -93,8 +93,17 @@ export const CGetOrderHistory = async (
     res.status(HttpStatusCode.Ok).json({
       success: true,
       message: "Order history retrieved successfully",
-      data: result.orders,
-      metadata: result.metadata,
+      data: {
+        orders: result.orders,
+        pagination: {
+          total: result.metadata.totalData,
+          page: result.metadata.page,
+          limit: result.metadata.limit,
+          totalPages: result.metadata.totalPages,
+          hasNextPage: result.metadata.page < result.metadata.totalPages,
+          hasPrevPage: result.metadata.page > 1,
+        },
+      },
     });
   } catch (error) {
     handleError(error, next, HttpStatusCode.InternalServerError);
