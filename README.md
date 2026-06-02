@@ -41,6 +41,8 @@ A full-stack E-Commerce application built with Next.js, Express.js, and PostgreS
 - **OpenTelemetry** - Observability & distributed tracing
 - **Redis** - Queue management & rate limiting
 - **Socket.IO** - Real-time bidirectional communication
+- **BullMQ** - Async job processing with retry & dead letter queue
+- **Nodemailer** - Email service for transactional emails (Gmail SMTP)
 
 ## 📦 Project Structure
 
@@ -108,13 +110,7 @@ docker-compose up -d --build      # Rebuild and start
 docker-compose down -v            # Remove everything including data
 ```
 
-For detailed Docker documentation, see [DOCKER.md](./DOCKER.md)
-
 ## 📊 OpenTelemetry & Observability (Optional)
-
-📚 **Documentation**:
-
-- OpenTelemetry: See [backend/OPENTELEMETRY.md](backend/OPENTELEMETRY.md)- Rate Limiting: See [RATE_LIMITING_GUIDE.md](RATE_LIMITING_GUIDE.md)
 
 ### Using Jaeger
 
@@ -259,8 +255,6 @@ curl "http://localhost:3131/api/v1/products" \
   -H "strict-transport-security: max-age=31536000; includeSubDomains; preload" \
   -H "x-frame-options: SAMEORIGIN"
 ```
-
-The frontend automatically includes these headers. See [backend/README.md](backend/README.md#-required-security-headers) for detailed documentation.
 
 ### Main Endpoints
 
