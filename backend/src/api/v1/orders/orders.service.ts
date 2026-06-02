@@ -6,6 +6,8 @@ import {
 } from "@utils/codeGenerator.util";
 import logger from "@configs/logger.configs";
 import { withSpan, addSpanEvent, setSpanAttribute } from "@utils/tracing.util";
+import { QueueManager } from "@jobs/queue.manager";
+import { IdempotencyService } from "@services/idempotency.service";
 
 export interface IOrderItem {
   product_id: number;
@@ -105,9 +107,11 @@ export const SCreateOrder = async (
         },
       });
 
-      // Create order items with unique codes
-      for (const itemData of orderItemsData) {
-        const itemCode = await generateOrderItemCode();
+      // Create order items with unique codes based on order ID and index
+      for (let i = 0; i < orderItemsData.length; i++) {
+        const itemData = orderItemsData[i];
+        // Generate unique item code: orderId + index (e.g., ITM123_1, ITM123_2)
+        const itemCode = `ITM${newOrder.id}_${i + 1}`;
         await tx.orderItem.create({
           data: {
             code: itemCode,
@@ -145,6 +149,33 @@ export const SCreateOrder = async (
 
       return completeOrder;
     });
+
+    // ✨ Trigger async job processing for order
+    // Generate idempotency key to ensure order is processed exactly once
+    const idempotencyKey = IdempotencyService.generateOrderKey(
+      order!.id,
+      "process",
+    );
+
+    // TODO: Hardcoded email for testing - emails always sent to alanmy.maulana@gmail.com
+    // This is set in email.service.ts and does not use database email field
+    const hardcodedEmail = "alanmy.maulana@gmail.com";
+
+    // Enqueue order processing job (email, activity log, notification)
+    // Always trigger async jobs regardless of user.email in database
+    await QueueManager.addOrderProcessingJob({
+      orderId: order!.id,
+      orderCode: order!.code,
+      userId,
+      totalAmount: Number(order!.totalAmount),
+      userEmail: hardcodedEmail, // Hardcoded for testing
+      userName: user.name || user.username,
+      items: order!.orderItems,
+      status: "PENDING",
+      idempotencyKey,
+    });
+
+    logger.info(`Order created and queued for processing: ${order!.code}`);
 
     return order;
   } catch (error: any) {
@@ -385,6 +416,37 @@ export const SCancelOrder = async (
       return updatedOrder;
     });
 
+    // ✨ Send cancellation email
+    const hardcodedEmail = "alanmy.maulana@gmail.com";
+    const idempotencyKey = IdempotencyService.generateEmailKey(
+      order.user_id,
+      "status-update",
+      orderId,
+    );
+
+    // Fetch user details for email
+    const user = await prisma.user.findUnique({
+      where: { id: order.user_id },
+      select: { name: true, username: true },
+    });
+
+    await QueueManager.addEmailJob({
+      to: hardcodedEmail,
+      subject: `Order ${order.code} - Cancelled`,
+      template: "status-update",
+      data: {
+        orderId: order.id,
+        orderCode: order.code,
+        userName: user?.name || user?.username || "Customer",
+        totalAmount: Number(order.totalAmount),
+        status: "CANCELLED",
+      },
+      userId: order.user_id,
+      idempotencyKey,
+    });
+
+    logger.info(`Order cancelled and email queued: ${order.code}`);
+
     return cancelledOrder;
   } catch (error: any) {
     logger.error(error, "Order cancellation error");
@@ -453,6 +515,33 @@ export const SUpdateOrderStatus = async (
         },
       },
     });
+
+    // ✨ Send status update email
+    const hardcodedEmail = "alanmy.maulana@gmail.com";
+    const idempotencyKey = IdempotencyService.generateEmailKey(
+      userId,
+      "status-update",
+      orderId,
+    );
+
+    await QueueManager.addEmailJob({
+      to: hardcodedEmail,
+      subject: `Order ${updatedOrder.code} - Status Updated`,
+      template: "status-update",
+      data: {
+        orderId: updatedOrder.id,
+        orderCode: updatedOrder.code,
+        userName: updatedOrder.user.name || updatedOrder.user.username,
+        totalAmount: Number(updatedOrder.totalAmount),
+        status: newStatus,
+      },
+      userId,
+      idempotencyKey,
+    });
+
+    logger.info(
+      `Order status updated and email queued: ${updatedOrder.code} - ${newStatus}`,
+    );
 
     return updatedOrder;
   } catch (error: any) {

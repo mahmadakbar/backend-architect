@@ -15,20 +15,24 @@ datasource db {
 }
 
 model User {
-  id        Int       @id @default(autoincrement())
-  username  String    @unique
-  password  String
-  createdAt DateTime  @default(now())
-  updatedAt DateTime? @updatedAt
-  name      String?   @db.VarChar(255)
-  image     String?   @db.Text
-  tasks     Task[]
-  orders    Order[]
-  role_id   Int       @default(3) // Default to 'user' role
-  role      Role      @relation(fields: [role_id], references: [id], onDelete: Cascade)
+  id            Int            @id @default(autoincrement())
+  username      String         @unique
+  email         String?        @unique // Made optional for backward compatibility
+  password      String
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime?      @updatedAt
+  name          String?        @db.VarChar(255)
+  image         String?        @db.Text
+  tasks         Task[]
+  orders        Order[]
+  role_id       Int            @default(3) // Default to 'user' role
+  role          Role           @relation(fields: [role_id], references: [id], onDelete: Cascade)
+  activityLogs  ActivityLog[]
+  notifications Notification[]
 
   @@index([name]) // Index for searching users by name
   @@index([role_id]) // Index for filtering by role
+  @@index([email]) // Index for email lookups
   @@map("users") // Maps to 'users' table in the database
 }
 
@@ -124,4 +128,50 @@ enum OrderStatus {
   PROCESSING
   COMPLETED
   CANCELLED
+}
+
+// Activity Log model for tracking user actions
+model ActivityLog {
+  id         Int      @id @default(autoincrement())
+  userId     Int
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  action     String   @db.VarChar(100) // e.g., "ORDER_CREATED", "ORDER_STATUS_CHANGED"
+  resource   String   @db.VarChar(50) // e.g., "order", "product", "user"
+  resourceId Int // ID of the affected resource
+  details    String?  @db.Text // JSON string with additional details
+  ipAddress  String?  @db.VarChar(50)
+  userAgent  String?  @db.Text
+  createdAt  DateTime @default(now())
+
+  @@index([userId]) // Index for fetching logs by user
+  @@index([resource, resourceId]) // Index for fetching logs by resource
+  @@index([action]) // Index for filtering by action
+  @@index([createdAt]) // Index for date range queries
+  @@map("activity_logs")
+}
+
+// Notification model for user notifications
+model Notification {
+  id        Int              @id @default(autoincrement())
+  userId    Int
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      NotificationType
+  title     String           @db.VarChar(255)
+  message   String           @db.Text
+  data      String?          @db.Text // JSON string with additional data
+  isRead    Boolean          @default(false)
+  readAt    DateTime?
+  createdAt DateTime         @default(now())
+
+  @@index([userId]) // Index for fetching notifications by user
+  @@index([userId, isRead]) // Composite index for unread notifications
+  @@index([createdAt]) // Index for sorting by date
+  @@map("notifications")
+}
+
+enum NotificationType {
+  order
+  payment
+  shipping
+  general
 }

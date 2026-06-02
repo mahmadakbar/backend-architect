@@ -10,6 +10,26 @@ import { prisma } from "@prisma/prisma.clients";
 // Mock Prisma
 jest.mock("@prisma/prisma.clients");
 
+// Mock QueueManager
+jest.mock("@jobs/queue.manager", () => ({
+  QueueManager: {
+    addOrderProcessingJob: jest.fn(() => Promise.resolve()),
+    addEmailJob: jest.fn(() => Promise.resolve()),
+  },
+}));
+
+// Mock IdempotencyService
+jest.mock("@services/idempotency.service", () => ({
+  IdempotencyService: {
+    generateOrderKey: jest.fn(
+      (orderId, action) => `order_${orderId}_${action}`,
+    ),
+    generateEmailKey: jest.fn(
+      (userId, type, resourceId) => `email_${userId}_${type}_${resourceId}`,
+    ),
+  },
+}));
+
 describe("Orders Service", () => {
   beforeEach(() => {
     jest.clearAllMocks();

@@ -7,6 +7,7 @@ import userRoutes from "./users/users.routes";
 import productRoutes from "./products/products.routes";
 import orderRoutes from "./orders/orders.routes";
 import queueRoutes from "./queue/queue.routes";
+import jobRoutes from "./jobs/jobs.routes";
 
 const router = Router();
 
@@ -16,6 +17,7 @@ router.use(MApiKey);
 // Auth and queue routes (no rate limiting)
 router.use("/auth", authRoutes);
 router.use("/queue", queueRoutes);
+router.use("/jobs", jobRoutes); // Job queue management (admin only)
 
 // Apply rate limiting to these routes
 router.use("/tasks", MRateLimitWithQueue(), taskRoutes);

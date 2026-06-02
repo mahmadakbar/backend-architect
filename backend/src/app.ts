@@ -13,6 +13,12 @@ import { env, logger, swaggerSpecs } from "@configs";
 import { MErrorHandler } from "@middlewares";
 import apiRoutes from "@api/api.routes";
 import { QueueWorker } from "@utils/queue.worker";
+import { QueueManager } from "@jobs/queue.manager";
+import {
+  startAllProcessors,
+  stopAllProcessors,
+} from "@jobs/processors/job.processors";
+import { EmailService } from "@services/email.service";
 
 dotenv.config();
 
@@ -93,12 +99,83 @@ app.get("/", (req, res) => {
 // Centralized error handler
 app.use(MErrorHandler);
 
-server.listen(PORT, () => {
-  logger.info(`🚀 Server is running on port ${PORT}`);
-  logger.info(`🔌 Socket.IO server ready`);
+// Initialize services before starting server
+async function initializeServices() {
+  try {
+    // Initialize Email Service
+    EmailService.initialize();
 
-  // Start queue worker to process queued requests
-  QueueWorker.start(1000); // Process every 1 second
+    // Initialize BullMQ queues
+    await QueueManager.initialize();
+
+    // Start job processors
+    startAllProcessors();
+
+    logger.info("✅ All services initialized successfully");
+  } catch (error) {
+    logger.error(error, "Failed to initialize services");
+    process.exit(1);
+  }
+}
+
+// Graceful shutdown handler
+async function gracefulShutdown(signal: string) {
+  logger.info(`${signal} received. Starting graceful shutdown...`);
+
+  try {
+    // Stop accepting new connections
+    server.close(() => {
+      logger.info("HTTP server closed");
+    });
+
+    // Stop job processors
+    await stopAllProcessors();
+
+    // Close BullMQ queues
+    await QueueManager.shutdown();
+
+    // Stop old queue worker
+    QueueWorker.stop();
+
+    // Close Socket.IO connections
+    io.close(() => {
+      logger.info("Socket.IO server closed");
+    });
+
+    logger.info("✅ Graceful shutdown completed");
+    process.exit(0);
+  } catch (error) {
+    logger.error(error, "Error during graceful shutdown");
+    process.exit(1);
+  }
+}
+
+// Handle shutdown signals
+process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
+process.on("SIGINT", () => gracefulShutdown("SIGINT"));
+
+// Handle uncaught errors
+process.on("uncaughtException", (error) => {
+  logger.error(error, "Uncaught exception");
+  gracefulShutdown("uncaughtException");
+});
+
+process.on("unhandledRejection", (reason, promise) => {
+  logger.error({ reason, promise }, "Unhandled rejection");
+  gracefulShutdown("unhandledRejection");
+});
+
+// Start server
+initializeServices().then(() => {
+  server.listen(PORT, () => {
+    logger.info(`🚀 Server is running on port ${PORT}`);
+    logger.info(`🔌 Socket.IO server ready`);
+    logger.info(`📧 Email service initialized`);
+    logger.info(`🔄 Job queue processors running`);
+
+    // Start old queue worker for rate limiting (backward compatibility)
+    QueueWorker.start(1000); // Process every 1 second
+  });
 });
 
 export default app;
