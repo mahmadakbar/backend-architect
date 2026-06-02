@@ -23,6 +23,8 @@ module.exports = {
     "^@middlewares/(.*)$": "<rootDir>/src/middlewares/$1",
     "^@configs/(.*)$": "<rootDir>/src/configs/$1",
     "^@configs$": "<rootDir>/src/configs/index.ts",
+    "^@jobs/(.*)$": "<rootDir>/src/jobs/$1",
+    "^@services/(.*)$": "<rootDir>/src/services/$1",
   },
   setupFilesAfterEnv: ["<rootDir>/src/tests/setup.ts"],
   collectCoverageFrom: [

@@ -9,13 +9,14 @@ A robust and scalable RESTful API for e-commerce built with modern technologies 
 - [Technologies](#-technologies)
 - [Project Structure](#-project-structure)
 - [Getting Started](#-getting-started)
-
-   - [Prerequisites](#prerequisites)
-   - [Manual Setup](#manual-setup)
-   - [Docker Setup](#docker-setup)
+  - [Prerequisites](#prerequisites)
+  - [Manual Setup](#manual-setup)
+  - [Docker Setup](#docker-setup)
 
 - [API Documentation](#-api-documentation)
-   - [Required Security Headers](#-required-security-headers)
+  - [Required Security Headers](#-required-security-headers)
+
+- [Async Job Processing](#-async-job-processing)
 - [Adding New APIs](#-adding-new-apis)
 - [Environment Variables](#-environment-variables)
 - [Available Scripts](#-available-scripts)
@@ -37,10 +38,9 @@ This project leverages modern and production-ready technologies:
 ### Authentication & Security
 
 - **JWT (JSON Web Tokens)** - Secure token-based authentication
-
-   - Access tokens (default: 60 minutes)
-   - Refresh tokens (default: 7 days)
-   - Token verification middleware for protected routes
+  - Access tokens (default: 60 minutes)
+  - Refresh tokens (default: 7 days)
+  - Token verification middleware for protected routes
 
 - **bcryptjs** - Password hashing and encryption
 - **Helmet** - Security headers middleware
@@ -49,31 +49,28 @@ This project leverages modern and production-ready technologies:
 ### Database & ORM
 
 - **Prisma** - Next-generation ORM for PostgreSQL
-
-   - Type-safe database queries
-   - Auto-generated types based on schema
-   - Easy migration management
-   - Built-in connection pooling
+  - Type-safe database queries
+  - Auto-generated types based on schema
+  - Easy migration management
+  - Built-in connection pooling
 
 - **PostgreSQL** - Robust relational database
 
 ### API Documentation
 
 - **Swagger UI Express** - Interactive API documentation
-
-   - Accessible at `/api-docs`
-   - Auto-generated from code annotations
-   - Try-it-out functionality for testing endpoints
+  - Accessible at `/api-docs`
+  - Auto-generated from code annotations
+  - Try-it-out functionality for testing endpoints
 
 - **Swagger Autogen** - Automatic Swagger documentation generation
 
 ### Logging
 
 - **Pino** - Extremely fast Node.js logger
-
-   - Structured JSON logging
-   - Different log levels (info, error, warn, debug)
-   - Better performance than console.log
+  - Structured JSON logging
+  - Different log levels (info, error, warn, debug)
+  - Better performance than console.log
 
 - **Pino-HTTP** - HTTP request logging middleware
 - **Pino-Pretty** - Prettifies Pino logs in development
@@ -94,37 +91,65 @@ This project leverages modern and production-ready technologies:
 ### Rate Limiting & Queue Management
 
 - **Redis** - In-memory data structure store
-   - Rate limiting with atomic operations
-   - Request queue management
-   - Session storage
-   - Real-time data caching
+  - Rate limiting with atomic operations
+  - Request queue management
+  - Session storage
+  - Real-time data caching
 
 - **ioredis** - Advanced Redis client
-   - Connection pooling
-   - Automatic reconnection
-   - TypeScript support
-   - Atomic operations (INCR, PEXPIRE)
+  - Connection pooling
+  - Automatic reconnection
+  - TypeScript support
+  - Atomic operations (INCR, PEXPIRE)
 
 - **Socket.IO** - Real-time bidirectional communication
-   - Queue status updates
-   - WebSocket connections with automatic fallback
-   - Room-based event broadcasting
+  - Queue status updates
+  - WebSocket connections with automatic fallback
+  - Room-based event broadcasting
 
 **Rate Limiting Features:**
+
 - Token bucket algorithm with Redis
 - UX-friendly: Returns 202 Accepted instead of errors
 - Queue system for rate-limited requests
 - Real-time queue status updates via Socket.IO
 - Automatic request processing by background worker
 
-📖 See [RATE_LIMITING_GUIDE.md](../RATE_LIMITING_GUIDE.md) for detailed documentation
+### Async Job Processing with BullMQ
+
+- **BullMQ** - Redis-based job queue for background processing
+  - Reliable job processing with Redis persistence
+  - Retry mechanism with exponential backoff
+  - Dead letter queue for failed jobs
+  - Job prioritization and rate limiting
+  - Concurrent job processing
+
+- **Nodemailer** - Email service for transactional emails
+  - Gmail SMTP integration (SSL on port 465)
+  - HTML email templates with IDR currency format
+  - Invoice and order confirmation emails
+
+**Job Types:**
+
+1. **Email Jobs** - Send invoices and order confirmations
+2. **Activity Log Jobs** - Record user actions to database
+3. **Notification Jobs** - Create in-app notifications
+4. **Order Processing Jobs** - Orchestrate all jobs for order events
+
+**Async Job Features:**
+
+- ✅ **Retry Mechanism**: 3 attempts with exponential backoff (2s → 4s → 8s)
+- ✅ **Dead Letter Queue**: Failed jobs stored for manual inspection
+- ✅ **Idempotency**: Redis-based duplicate prevention (24h TTL)
+- ✅ **Concurrent Processing**: Configurable workers per job type
+- ✅ **Admin Monitoring**: API endpoints for queue metrics and management
 
 ### Data Encryption
 
 - **Custom Encryption Helper** - Implements AES-256-CBC encryption
-   - Encrypts sensitive data before storing in database
-   - Decrypts data when retrieving from database
-   - Uses secret key from environment variables
+  - Encrypts sensitive data before storing in database
+  - Decrypts data when retrieving from database
+  - Uses secret key from environment variables
 
 ---
 
@@ -181,7 +206,6 @@ The project follows a **modular, feature-based architecture**:
 
 1. **Separation of Concerns**: Each feature (auth, tasks) is organized in its own directory
 2. **Layered Architecture**:
-
    - **Routes** → Define endpoints and attach middlewares
    - **Controllers** → Handle HTTP requests/responses
    - **Services** → Contain business logic
@@ -379,13 +403,13 @@ Interactive API documentation is available via **Swagger UI**.
 
 **All API requests MUST include the following headers:**
 
-| Header | Required Value | Description |
-|--------|---------------|-------------|
-| `apikey` | Your API key from `.env` | API authentication key |
-| `x-content-type-options` | `nosniff` | Prevents MIME type sniffing |
-| `x-xss-protection` | `1; mode=block` | Enables XSS protection |
-| `strict-transport-security` | `max-age=31536000; includeSubDomains; preload` | Enforces HTTPS |
-| `x-frame-options` | `SAMEORIGIN` | Prevents clickjacking |
+| Header                      | Required Value                                 | Description                 |
+| --------------------------- | ---------------------------------------------- | --------------------------- |
+| `apikey`                    | Your API key from `.env`                       | API authentication key      |
+| `x-content-type-options`    | `nosniff`                                      | Prevents MIME type sniffing |
+| `x-xss-protection`          | `1; mode=block`                                | Enables XSS protection      |
+| `strict-transport-security` | `max-age=31536000; includeSubDomains; preload` | Enforces HTTPS              |
+| `x-frame-options`           | `SAMEORIGIN`                                   | Prevents clickjacking       |
 
 **Example Request:**
 
@@ -426,11 +450,11 @@ Create the following files in your module directory:
 #### `your-module.routes.ts`
 
 ```typescript
-import { Router } from 'express';
-import { MAuthToken } from '@middlewares';
-import validator from '@utils/validator.util';
-import { VCreateItem } from './your-module.validation';
-import { CCreateItem, CGetItems } from './your-module.controller';
+import { Router } from "express";
+import { MAuthToken } from "@middlewares";
+import validator from "@utils/validator.util";
+import { VCreateItem } from "./your-module.validation";
+import { CCreateItem, CGetItems } from "./your-module.controller";
 
 const router = Router();
 
@@ -438,8 +462,8 @@ const router = Router();
 router.use(MAuthToken);
 
 // Define routes
-router.post('/', validator.body(VCreateItem), CCreateItem);
-router.get('/', CGetItems);
+router.post("/", validator.body(VCreateItem), CCreateItem);
+router.get("/", CGetItems);
 
 export default router;
 ```
@@ -447,7 +471,7 @@ export default router;
 #### `your-module.validation.ts`
 
 ```typescript
-import Joi from 'joi';
+import Joi from "joi";
 
 export const VCreateItem = Joi.object({
   name: Joi.string().required().min(3).max(100),
@@ -463,21 +487,21 @@ export const VUpdateItem = Joi.object({
 #### `your-module.controller.ts`
 
 ```typescript
-import { Request, Response, NextFunction } from 'express';
-import { SCreateItem, SGetItems } from './your-module.service';
+import { Request, Response, NextFunction } from "express";
+import { SCreateItem, SGetItems } from "./your-module.service";
 
 export const CCreateItem = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   try {
     const userId = req.user?.id;
     const result = await SCreateItem(req.body, userId);
-    
+
     res.status(201).json({
       success: true,
-      message: 'Item created successfully',
+      message: "Item created successfully",
       data: result,
     });
   } catch (error) {
@@ -488,15 +512,15 @@ export const CCreateItem = async (
 export const CGetItems = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   try {
     const userId = req.user?.id;
     const items = await SGetItems(userId);
-    
+
     res.status(200).json({
       success: true,
-      message: 'Items retrieved successfully',
+      message: "Items retrieved successfully",
       data: items,
     });
   } catch (error) {
@@ -508,8 +532,8 @@ export const CGetItems = async (
 #### `your-module.service.ts`
 
 ```typescript
-import { prisma } from '@prisma/prisma.clients';
-import { ApiError } from '@utils/error.utils';
+import { prisma } from "@prisma/prisma.clients";
+import { ApiError } from "@utils/error.utils";
 
 export const SCreateItem = async (data: any, userId: number) => {
   // Business logic here
@@ -519,7 +543,7 @@ export const SCreateItem = async (data: any, userId: number) => {
       userId,
     },
   });
-  
+
   return item;
 };
 
@@ -527,7 +551,7 @@ export const SGetItems = async (userId: number) => {
   const items = await prisma.yourModel.findMany({
     where: { userId },
   });
-  
+
   return items;
 };
 ```
@@ -574,16 +598,16 @@ bun run prisma:generate
 Update `src/api/v1/v1.routes.ts`:
 
 ```typescript
-import { Router } from 'express';
-import authRoutes from './auth/auth.routes';
-import tasksRoutes from './tasks/tasks.routes';
-import yourModuleRoutes from './your-module/your-module.routes'; // Add this
+import { Router } from "express";
+import authRoutes from "./auth/auth.routes";
+import tasksRoutes from "./tasks/tasks.routes";
+import yourModuleRoutes from "./your-module/your-module.routes"; // Add this
 
 const router = Router();
 
-router.use('/auth', authRoutes);
-router.use('/tasks', tasksRoutes);
-router.use('/your-module', yourModuleRoutes); // Add this
+router.use("/auth", authRoutes);
+router.use("/tasks", tasksRoutes);
+router.use("/your-module", yourModuleRoutes); // Add this
 
 export default router;
 ```
@@ -593,7 +617,7 @@ export default router;
 Add Swagger comments to your routes for automatic documentation:
 
 ```typescript
-router.post('/', validator.body(VCreateItem), CCreateItem);
+router.post("/", validator.body(VCreateItem), CCreateItem);
 // #swagger.tags = ['Your Module']
 // #swagger.summary = 'Create a new item'
 // #swagger.security = [{ "bearerAuth": [] }]
@@ -623,46 +647,46 @@ router.post('/', validator.body(VCreateItem), CCreateItem);
 
 ## 🔐 Environment Variables
 
-| Variable | Description | Default | Required |
-|----------|-------------|---------|----------|
-| `PORT` | Application port | 5000 | No |
-| `BASE_URL` | Base URL for the application | http://localhost:5000 | No |
-| `NODE_ENV` | Environment (development/production) | development | No |
-| `BRANCH` | Branch name | development | No |
-| `LOG_LEVEL` | Logging level (info/debug/error) | info | No |
-| `DATABASE_URL` | PostgreSQL connection string | - | Yes |
-| `APIKEY` | API key for request authentication | - | Yes |
-| `JWT_ACCESS_SECRET` | Secret key for access tokens | - | Yes |
-| `JWT_REFRESH_SECRET` | Secret key for refresh tokens | - | Yes |
-| `JWT_ACCESS_EXPIRES` | Access token expiration | 60m | No |
-| `JWT_REFRESH_EXPIRES` | Refresh token expiration | 7d | No |
-| `KEY_SECRET` | Encryption key (32 characters) | - | Yes |
-| `REDIS_URL` | Redis connection URL | redis://localhost:6379 | Yes |
-| `RATE_LIMIT_MAX_REQUESTS` | Max requests per window | 10 | No |
-| `RATE_LIMIT_WINDOW_MS` | Rate limit time window (ms) | 60000 | No |
+| Variable                  | Description                          | Default                | Required |
+| ------------------------- | ------------------------------------ | ---------------------- | -------- |
+| `PORT`                    | Application port                     | 5000                   | No       |
+| `BASE_URL`                | Base URL for the application         | http://localhost:5000  | No       |
+| `NODE_ENV`                | Environment (development/production) | development            | No       |
+| `BRANCH`                  | Branch name                          | development            | No       |
+| `LOG_LEVEL`               | Logging level (info/debug/error)     | info                   | No       |
+| `DATABASE_URL`            | PostgreSQL connection string         | -                      | Yes      |
+| `APIKEY`                  | API key for request authentication   | -                      | Yes      |
+| `JWT_ACCESS_SECRET`       | Secret key for access tokens         | -                      | Yes      |
+| `JWT_REFRESH_SECRET`      | Secret key for refresh tokens        | -                      | Yes      |
+| `JWT_ACCESS_EXPIRES`      | Access token expiration              | 60m                    | No       |
+| `JWT_REFRESH_EXPIRES`     | Refresh token expiration             | 7d                     | No       |
+| `KEY_SECRET`              | Encryption key (32 characters)       | -                      | Yes      |
+| `REDIS_URL`               | Redis connection URL                 | redis://localhost:6379 | Yes      |
+| `RATE_LIMIT_MAX_REQUESTS` | Max requests per window              | 10                     | No       |
+| `RATE_LIMIT_WINDOW_MS`    | Rate limit time window (ms)          | 60000                  | No       |
 
 ---
 
 ## 📜 Available Scripts
 
-| Script | Description |
-|--------|-------------|
-| `bun run dev` | Start development server with auto-reload |
-| `bun run build` | Build TypeScript to JavaScript |
-| `bun run start` | Start production server |
-| `bun run prisma:migrate` | Run database migrations |
-| `bun run prisma:generate` | Generate Prisma Client |
-| `bun run prisma:studio` | Open Prisma Studio (database GUI) |
-| `bun run test` | Run tests |
-| `bun run test:watch` | Run tests in watch mode |
-| `bun run test:coverage` | Run tests with coverage report |
-| `bun run docker:build` | Build Docker images |
-| `bun run docker:up` | Start Docker services |
-| `bun run docker:down` | Stop Docker services |
-| `bun run docker:logs` | View Docker logs |
-| `bun run docker:migrate` | Run migrations in Docker |
-| `bun run docker:studio` | Start Prisma Studio in Docker |
-| `bun run docker:clean` | Remove Docker volumes and containers |
+| Script                    | Description                               |
+| ------------------------- | ----------------------------------------- |
+| `bun run dev`             | Start development server with auto-reload |
+| `bun run build`           | Build TypeScript to JavaScript            |
+| `bun run start`           | Start production server                   |
+| `bun run prisma:migrate`  | Run database migrations                   |
+| `bun run prisma:generate` | Generate Prisma Client                    |
+| `bun run prisma:studio`   | Open Prisma Studio (database GUI)         |
+| `bun run test`            | Run tests                                 |
+| `bun run test:watch`      | Run tests in watch mode                   |
+| `bun run test:coverage`   | Run tests with coverage report            |
+| `bun run docker:build`    | Build Docker images                       |
+| `bun run docker:up`       | Start Docker services                     |
+| `bun run docker:down`     | Stop Docker services                      |
+| `bun run docker:logs`     | View Docker logs                          |
+| `bun run docker:migrate`  | Run migrations in Docker                  |
+| `bun run docker:studio`   | Start Prisma Studio in Docker             |
+| `bun run docker:clean`    | Remove Docker volumes and containers      |
 
 ---
 
@@ -673,6 +697,7 @@ The project includes functional test scripts located in `src/tests/functionals/`
 ### Test Files
 
 #### 1. Rate Limiting Test (`test-rate-limit-simple.js`)
+
 Tests the rate limiting and queue system without authentication.
 
 ```bash
@@ -684,6 +709,7 @@ node src/tests/functionals/test-rate-limit-simple.js
 ```
 
 **What it tests:**
+
 - Rate limit enforcement (10 requests per 60 seconds)
 - Queue system when rate limit exceeded
 - 202 Accepted responses with queue tokens
@@ -692,11 +718,13 @@ node src/tests/functionals/test-rate-limit-simple.js
 - Request processing by queue worker
 
 **Expected Results:**
+
 - First 10 requests: 200 OK (processed immediately)
 - Requests 11-15: 202 Accepted (queued)
 - Queued requests processed within seconds
 
 #### 2. Full Rate Limiting Test (`test-rate-limit.js`)
+
 Comprehensive rate limiting test with user authentication.
 
 ```bash
@@ -704,6 +732,7 @@ node src/tests/functionals/test-rate-limit.js
 ```
 
 **What it tests:**
+
 - User registration and login
 - Authenticated rate limiting
 - Normal requests under rate limit
@@ -711,6 +740,7 @@ node src/tests/functionals/test-rate-limit.js
 - Queue depth tracking
 
 #### 3. Swagger Documentation Test (`test-swagger.js`)
+
 Validates that the Swagger documentation is properly generated.
 
 ```bash
@@ -718,6 +748,7 @@ node src/tests/functionals/test-swagger.js
 ```
 
 **What it tests:**
+
 - Swagger endpoint accessibility
 - API documentation generation
 - Endpoint definitions
@@ -738,7 +769,7 @@ node src/tests/functionals/test-swagger.js
 
 ### Test Output Example
 
-```
+```yaml
 🚀 Starting Rate Limit and Queue Tests
 
 Configuration:
@@ -767,6 +798,7 @@ Configuration:
   - `x-xss-protection: 1; mode=block` - Enables XSS protection
   - `strict-transport-security: max-age=31536000; includeSubDomains; preload` - Enforces HTTPS
   - `x-frame-options: SAMEORIGIN` - Prevents clickjacking
+
 - **JWT Authentication**: Secure token-based authentication
 - **Password Hashing**: Bcrypt for secure password storage
 - **Helmet**: Security headers to protect against common vulnerabilities
